@@ -7,20 +7,20 @@ colorClamp* GameDrawing::bgColor     = new colorClamp(220, 220, 220);
 colorClamp* GameDrawing::gridBgColor = new colorClamp(178, 168, 158);
 colorClamp* GameDrawing::gridColor   = new colorClamp(204, 192, 180);
 
-vec2* GameDrawing::tLeftGridBG  = new vec2(-gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
-vec2* GameDrawing::tRightGridBG = new vec2(gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
-vec2* GameDrawing::bRightGridBG = new vec2(gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
+vec2* GameDrawing::tLeftGridBG  = new vec2(-gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
+vec2* GameDrawing::tRightGridBG = new vec2( gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
+vec2* GameDrawing::bRightGridBG = new vec2( gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
 vec2* GameDrawing::bLeftGridBG  = new vec2(-gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
 
 void GameDrawing::show() {
     glutCreateWindow("2048-CPP");
     glutDisplayFunc(display);
+    glutSpecialFunc(KeyboardControl);
     glutMainLoop();
 }
 
 void GameDrawing::display() {
-    int width         = glutGet(GLUT_WINDOW_WIDTH), height = glutGet(GLUT_WINDOW_HEIGHT);
-    float aspectRatio = (float)width / (float)height;
+    float aspectRatio = (float)glutGet(GLUT_WINDOW_WIDTH) / (float)glutGet(GLUT_WINDOW_HEIGHT);
 
     glClearColor(bgColor->R, bgColor->G, bgColor->B, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);

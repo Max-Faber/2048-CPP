@@ -1,9 +1,8 @@
 #pragma once
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
 
 #include <Graphics.h>
 #include <GameLogic.h>
+#include <InputControl.h>
 
 #define ABS(N) ((N<0) ? (-N) : (N))
 

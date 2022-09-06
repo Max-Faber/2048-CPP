@@ -14,6 +14,7 @@ add_executable(
         src/GameLogic.cpp
         src/Graphics.cpp
         src/CartesianProduct.cpp
+        src/InputControl.cpp
 )
 
 if (APPLE)
