@@ -4,7 +4,9 @@ std::mt19937* GameLogic::gen;
 std::set<FieldPos*> GameLogic::emptyFieldPositions;
 //std::map<std::tuple<int, int>, FieldPos*> GameLogic::fieldTiles;
 std::map<int, std::map<int, FieldPos*>> GameLogic::fieldTileColumns;
+std::map<int, std::map<int, FieldPos*>> GameLogic::fieldTileColumnsReversed;
 std::map<int, std::map<int, FieldPos*>> GameLogic::fieldTileRows;
+std::map<int, std::map<int, FieldPos*>> GameLogic::fieldTileRowsReversed;
 
 void GameLogic::initialize() {
     initializeRandom();
@@ -30,7 +32,9 @@ void GameLogic::initializeTileFields() {
         FieldPos* pos = new FieldPos(x, y);
 
         fieldTileColumns[x][y] = pos;
+        fieldTileColumnsReversed[x][gridDimension - y - 1] = pos;
         fieldTileRows[y][x] = pos;
+        fieldTileRowsReversed[y][gridDimension - x - 1] = pos;
         emptyFieldPositions.insert(pos);
         printf("(%d, %d)\n", x, y);
     }
@@ -41,13 +45,13 @@ void GameLogic::initializeGame() {
     for (int _ = 0; _ < initialTileCnt; _++) spawnTileRandom();
 
 //    FieldPos* pos1 = fieldTileRows[0][0];
-//    FieldPos* pos2 = fieldTileRows[1][0];
-//    FieldPos* pos3 = fieldTileRows[2][0];
-//    FieldPos* pos4 = fieldTileRows[3][0];
+//    FieldPos* pos2 = fieldTileRows[0][1];
+//    FieldPos* pos3 = fieldTileRows[0][2];
+//    FieldPos* pos4 = fieldTileRows[0][3];
 //
 //    pos1->tile = new Tile(2);
 //    pos2->tile = new Tile(2);
-//    pos3->tile = new Tile(2);
+//    pos3->tile = new Tile(8);
 //    pos4->tile = new Tile(2);
 //    emptyFieldPositions.erase(pos1);
 //    emptyFieldPositions.erase(pos2);
@@ -76,10 +80,10 @@ void GameLogic::printGrid() {
         for (std::pair<const int, FieldPos*> fieldTile : fieldTileRow.second) {
             int y = fieldTile.first;
 
-            if (!fieldTile.second->tile) { printf("# "); continue; }
-            printf("%d ", fieldTile.second->tile->val);
+            if (!fieldTile.second->tile) { printf("#\t"); continue; }
+            printf("%d\t", fieldTile.second->tile->val);
         }
-        printf("\n");
+        printf("\n\n");
     }
     printf("\n");
 }
@@ -88,8 +92,8 @@ void GameLogic::mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldT
     if (gridDimension < 2) return;
     for (std::pair<const int, std::map<int, FieldPos*>> fieldTilesOneDim : fieldTilesTwoDim) {
         mergeTileMap(fieldTilesOneDim.second);
+        fillTileGaps(fieldTilesOneDim.second);
     }
-    printGrid();
 }
 
 void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap) {
@@ -106,18 +110,30 @@ void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap) {
         if (posLeft->tile && posRight->tile && posLeft->tile->val == posRight->tile->val) {
             posLeft->tile->val *= 2;
             delete posRight->tile;
-            for (std::map<int, FieldPos*>::iterator it = itPosRight; it != fieldTilesMapEnd; it++) {
-                std::map<int, FieldPos*>::iterator itNext;
-
-                itNext = std::next(it);
-                if (itNext == fieldTilesMapEnd) {
-                    if (it->second->tile) it->second->tile = nullptr;
-                    break;
-                }
-                it->second->tile = itNext->second->tile;
-            }
+            posRight->tile = nullptr;
         }
         itPosLeft++;
         itPosRight++;
     } while (itPosRight != fieldTilesMapEnd);
+}
+
+void GameLogic::fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap) {
+    FieldPos* curEmptyPosition = nullptr;
+    std::vector<FieldPos*> emptyPositions = { };
+
+    for (std::pair<const int, FieldPos*> pos : fieldTilesMap) {
+        if (!pos.second->tile) emptyPositions.push_back(pos.second);
+        if (!curEmptyPosition) {
+            std::vector<FieldPos*>::iterator it = emptyPositions.begin();
+
+            if (it == emptyPositions.end()) continue;
+            curEmptyPosition = *it;
+            emptyPositions.erase(it);
+        }
+        if (!pos.second->tile) continue;
+        curEmptyPosition->tile = pos.second->tile;
+        emptyPositions.push_back(pos.second);
+        pos.second->tile = nullptr;
+        curEmptyPosition = nullptr;
+    }
 }

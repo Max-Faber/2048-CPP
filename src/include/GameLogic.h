@@ -45,23 +45,26 @@ private:
 
 //    static std::map<std::tuple<int, int>, FieldPos*> fieldTiles;
 
-    constexpr const static int initialTileCnt = 4*4;
+    constexpr const static int initialTileCnt = 2;
 
     static void initializeRandom();
     static void initializeTileFields();
     static void initializeGame();
-    static void spawnTileRandom();
     static void mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap);
+    static void fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap);
 public:
     constexpr static const int gridDimension = 4;
     // Key of map is the index of the corresponding column (zero-based)
     // Key of the nested map is the index of the corresponding row (zero-based)
     static std::map<int, std::map<int, FieldPos*>> fieldTileColumns;
+    static std::map<int, std::map<int, FieldPos*>> fieldTileColumnsReversed;
     // Key of map is the index of the corresponding row (zero-based)
     // Key of the nested map is the index of the corresponding column (zero-based)
     static std::map<int, std::map<int, FieldPos*>> fieldTileRows;
+    static std::map<int, std::map<int, FieldPos*>> fieldTileRowsReversed;
 
     static void initialize();
     static void printGrid();
     static void mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim);
+    static void spawnTileRandom();
 };
