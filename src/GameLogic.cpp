@@ -48,15 +48,21 @@ void GameLogic::initializeGame() {
 //    FieldPos* pos2 = fieldTileRows[0][1];
 //    FieldPos* pos3 = fieldTileRows[0][2];
 //    FieldPos* pos4 = fieldTileRows[0][3];
+//    FieldPos* pos5 = fieldTileRows[0][4];
+//    FieldPos* pos6 = fieldTileRows[0][5];
 //
-//    pos1->tile = new Tile(2);
-//    pos2->tile = new Tile(2);
-//    pos3->tile = new Tile(8);
+//    pos1->tile = new Tile(8);
+//    pos2->tile = new Tile(4);
+////    pos3->tile = new Tile(2);
 //    pos4->tile = new Tile(2);
+//    pos5->tile = new Tile(2);
+////    pos6->tile = new Tile(2);
 //    emptyFieldPositions.erase(pos1);
 //    emptyFieldPositions.erase(pos2);
 //    emptyFieldPositions.erase(pos3);
 //    emptyFieldPositions.erase(pos4);
+//    emptyFieldPositions.erase(pos5);
+//    emptyFieldPositions.erase(pos6);
     printGrid();
 }
 
@@ -111,7 +117,13 @@ void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap) {
             posLeft->tile->val *= 2;
             delete posRight->tile;
             posRight->tile = nullptr;
+            emptyFieldPositions.insert(posRight);
         }
+        else if (posLeft->tile && !posRight->tile) {
+            itPosRight++;
+            continue;
+        }
+        else if (itPosLeft->first != itPosRight->first + 1) itPosLeft = std::prev(itPosRight);
         itPosLeft++;
         itPosRight++;
     } while (itPosRight != fieldTilesMapEnd);
@@ -128,10 +140,12 @@ void GameLogic::fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap) {
 
             if (it == emptyPositions.end()) continue;
             curEmptyPosition = *it;
+            emptyFieldPositions.insert(curEmptyPosition);
             emptyPositions.erase(it);
         }
         if (!pos.second->tile) continue;
         curEmptyPosition->tile = pos.second->tile;
+        emptyFieldPositions.erase(curEmptyPosition);
         emptyPositions.push_back(pos.second);
         pos.second->tile = nullptr;
         curEmptyPosition = nullptr;
