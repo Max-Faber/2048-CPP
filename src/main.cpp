@@ -1,8 +1,8 @@
 #include <main.h>
 
 int main(int argc, char** argv) {
-    Graphics::init(argc, argv, GameDrawing::initialWidth, GameDrawing::initialHeight);
+    Graphics::init(argc, argv, GameRendering::initialWidth, GameRendering::initialHeight);
     GameLogic::initialize();
-    GameDrawing::show();
+    GameRendering::show();
     return 0;
 }

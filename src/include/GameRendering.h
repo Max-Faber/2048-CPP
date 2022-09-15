@@ -1,12 +1,13 @@
 #pragma once
 
+#include <TextRendering.h>
 #include <Graphics.h>
 #include <GameLogic.h>
 #include <InputControl.h>
 
 #define ABS(N) ((N<0) ? (-N) : (N))
 
-class GameDrawing {
+class GameRendering {
 private:
     static const int minScreenRange = -1;
     static const int maxScreenRange =  1;

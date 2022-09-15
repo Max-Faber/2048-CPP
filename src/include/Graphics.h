@@ -2,7 +2,6 @@
 
 #include <cstdio>
 #include <cmath>
-
 #ifdef __APPLE_CC__
     #define GL_SILENCE_DEPRECATION
     #include <GLUT/glut.h>
