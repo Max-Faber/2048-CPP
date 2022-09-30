@@ -7,7 +7,8 @@
 
 #define ABS(N) ((N<0) ? (-N) : (N))
 
-class GameRendering {
+class GameRendering
+{
 private:
     static const int minScreenRange = -1;
     static const int maxScreenRange =  1;
@@ -25,10 +26,10 @@ private:
     static colorClamp* gridBgColor;
     static colorClamp* gridColor;
 
-    static vec2* tLeftGridBG;
-    static vec2* tRightGridBG;
-    static vec2* bRightGridBG;
-    static vec2* bLeftGridBG;
+    static glm::vec2* tLeftGridBG;
+    static glm::vec2* tRightGridBG;
+    static glm::vec2* bRightGridBG;
+    static glm::vec2* bLeftGridBG;
 
     static void display();
     static void drawGame();

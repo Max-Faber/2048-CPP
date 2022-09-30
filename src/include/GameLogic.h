@@ -12,38 +12,39 @@
     #include <GL/glut.h>
 #endif
 
-struct Tile {
+struct Tile
+{
     int val;
 
-    Tile(int val) {
-        this->val = val;
-    }
+    Tile(int val) { this->val = val; }
 };
 
-struct FieldPos {
+struct FieldPos
+{
     int x, y;
     Tile *tile;
 
-    FieldPos(int x, int y, Tile *tile = nullptr) {
+    FieldPos(int x, int y, Tile *tile = nullptr)
+    {
         this->x     = x;
         this->y     = y;
         this->tile  = tile;
     }
 
-    ~FieldPos() {
+    ~FieldPos()
+    {
         if (!tile) return;
         delete tile;
         tile = nullptr;
     }
 };
 
-class GameLogic {
+class GameLogic
+{
 private:
     static std::mt19937* gen; // Standard mersenne_twister_engine seeded with random_device
 
     static std::set<FieldPos*> emptyFieldPositions;
-
-//    static std::map<std::tuple<int, int>, FieldPos*> fieldTiles;
 
     constexpr const static int initialTileCnt = 2;
 

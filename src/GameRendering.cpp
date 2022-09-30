@@ -7,19 +7,21 @@ colorClamp* GameRendering::bgColor     = new colorClamp(220, 220, 220);
 colorClamp* GameRendering::gridBgColor = new colorClamp(178, 168, 158);
 colorClamp* GameRendering::gridColor   = new colorClamp(204, 192, 180);
 
-vec2* GameRendering::tLeftGridBG  = new vec2(-gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
-vec2* GameRendering::tRightGridBG = new vec2(gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
-vec2* GameRendering::bRightGridBG = new vec2(gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
-vec2* GameRendering::bLeftGridBG  = new vec2(-gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
+glm::vec2* GameRendering::tLeftGridBG  = new glm::vec2(-gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
+glm::vec2* GameRendering::tRightGridBG = new glm::vec2(gridRangeHalf, gridRangeHalf - vertGridRangeOffsHalf);
+glm::vec2* GameRendering::bRightGridBG = new glm::vec2(gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
+glm::vec2* GameRendering::bLeftGridBG  = new glm::vec2(-gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
 
-void GameRendering::show() {
+void GameRendering::show()
+{
     glutCreateWindow("2048-CPP");
     glutDisplayFunc(display);
     glutSpecialFunc(KeyboardControl);
     glutMainLoop();
 }
 
-void GameRendering::display() {
+void GameRendering::display()
+{
     float aspectRatio = (float)glutGet(GLUT_WINDOW_WIDTH) / (float)glutGet(GLUT_WINDOW_HEIGHT);
 
     glClearColor(bgColor->R, bgColor->G, bgColor->B, 1.0f);
@@ -31,25 +33,32 @@ void GameRendering::display() {
     glFlush(); // Flush drawing command buffer to make drawing happen as soon as possible.
 }
 
-void GameRendering::drawGame() {
+void GameRendering::drawGame()
+{
     GameRendering::displayGridBackground();
     GameRendering::displayGrid();
 
-
     freetype::font_data our_font;
-    our_font.init("fonts/arial.ttf", 16);
-    freetype::print(our_font, 320, 200, "Active FreeType Text - %7.2f", 0);
+    our_font.init("fonts/arial.ttf", 32);
+    glColor3f(0, 0, 0);
+    glm::vec2 pos = glm::vec2(320, 50);
+    glm::vec2 newPos = ((pos / glm::vec2(500, 700)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
+    freetype::renderText(our_font, 0, 0, "2048!\n:)");
 }
 
-void GameRendering::displayGridBackground() {
+void GameRendering::displayGridBackground()
+{
     glColor3f(gridBgColor->R, gridBgColor->G, gridBgColor->B);
     Graphics::drawFilledRoundedRect(*tLeftGridBG, *tRightGridBG, *bRightGridBG, *bLeftGridBG);
 }
 
-void GameRendering::displayGrid() {
+void GameRendering::displayGrid()
+{
     glColor3f(gridColor->R, gridColor->G, gridColor->B);
-    for (int column = 0; column < GameLogic::gridDimension; column++) {
-        for (int row = 0; row < GameLogic::gridDimension; row++) {
+    for (int column = 0; column < GameLogic::gridDimension; column++)
+    {
+        for (int row = 0; row < GameLogic::gridDimension; row++)
+        {
             const float offs    =  lenTileMarHalf + lenTotMar;
             const float horOffs =  offs;
             const float verOffs =  offs + vertGridRangeOffsHalf;
@@ -57,10 +66,10 @@ void GameRendering::displayGrid() {
             const float y       =  gridRangeHalf - (float)column * (lenTileMar + lenTotMar) - verOffs;
 
             Graphics::drawFilledRoundedRect(
-                    vec2(x - lenTileMarHalf, y + lenTileMarHalf),
-                    vec2(x + lenTileMarHalf, y + lenTileMarHalf),
-                    vec2(x + lenTileMarHalf, y - lenTileMarHalf),
-                    vec2(x - lenTileMarHalf, y - lenTileMarHalf)
+                    glm::vec2(x - lenTileMarHalf, y + lenTileMarHalf),
+                    glm::vec2(x + lenTileMarHalf, y + lenTileMarHalf),
+                    glm::vec2(x + lenTileMarHalf, y - lenTileMarHalf),
+                    glm::vec2(x - lenTileMarHalf, y - lenTileMarHalf)
             );
         }
     }
