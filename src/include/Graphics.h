@@ -14,17 +14,6 @@
     #include <corecrt_math_defines.h>
 #endif
 
-//struct vec2
-//{
-//    float x, y;
-//
-//    vec2(float x, float y)
-//    {
-//        this->x = x;
-//        this->y = y;
-//    }
-//};
-
 struct colorClamp
 {
     float R, G, B;
@@ -42,6 +31,19 @@ struct colorClamp
         this->R = (float)rRGB / colorRangeRGB;
         this->G = (float)gRGB / colorRangeRGB;
         this->B = (float)bRGB / colorRangeRGB;
+    }
+};
+
+struct rectPosition
+{
+    glm::vec2 tLeft, tRight, bRight, bLeft;
+
+    rectPosition(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft)
+    {
+        this->tLeft  = tLeft;
+        this->tRight = tRight;
+        this->bRight = bRight;
+        this->bLeft  = bLeft;
     }
 };
 

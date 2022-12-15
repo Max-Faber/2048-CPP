@@ -21,15 +21,13 @@ void Graphics::drawFilledRoundedRect(glm::vec2 tLeft, glm::vec2 tRight, glm::vec
     const glm::vec2 bLeftOffs   = glm::vec2(bLeft.x  + radOffs, bLeft.y  + radOffs);
 
     drawFilledRect(glm::vec2(tLeftOffs.x,  tLeft.y),  glm::vec2(tRightOffs.x, tRight.y),
-                   glm::vec2(bRightOffs.x, bRight.y), glm::vec2(bLeftOffs.x,  bLeft.y)
-    );
+                   glm::vec2(bRightOffs.x, bRight.y), glm::vec2(bLeftOffs.x,  bLeft.y));
     drawFilledRect(glm::vec2(tLeft.x,  tLeftOffs.y),  glm::vec2(tRight.x, tRightOffs.y),
-                   glm::vec2(bRight.x, bRightOffs.y), glm::vec2(bLeft.x,  bLeftOffs.y)
-    );
+                   glm::vec2(bRight.x, bRightOffs.y), glm::vec2(bLeft.x,  bLeftOffs.y));
     drawFilledCircle(tLeftOffs.x,  tLeftOffs.y,  radOffs, nSegments, anglePerpendicular, startAngle += anglePerpendicular);
     drawFilledCircle(bLeftOffs.x,  bLeftOffs.y,  radOffs, nSegments, anglePerpendicular, startAngle += anglePerpendicular);
     drawFilledCircle(bRightOffs.x, bRightOffs.y, radOffs, nSegments, anglePerpendicular, startAngle += anglePerpendicular);
-    drawFilledCircle(tRightOffs.x, tRightOffs.y, radOffs, nSegments, anglePerpendicular, startAngle += anglePerpendicular);
+    drawFilledCircle(tRightOffs.x, tRightOffs.y, radOffs, nSegments, anglePerpendicular, startAngle +  anglePerpendicular);
 }
 
 void Graphics::drawFilledRect(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft)

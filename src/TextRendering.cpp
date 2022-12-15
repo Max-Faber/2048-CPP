@@ -25,7 +25,7 @@ namespace freetype
         if (FT_Get_Glyph(face->glyph, &glyph)) throw std::runtime_error("FT_Get_Glyph failed");
 
         // Convert The Glyph To A Bitmap.
-        FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, nullptr, 1 );
+        FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, nullptr, 1);
         FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
 
         // This Reference Will Make Accessing The Bitmap Easier.
@@ -58,8 +58,8 @@ namespace freetype
         }
         // Now We Just Setup Some Texture Parameters.
         glBindTexture(GL_TEXTURE_2D, tex_base[ch]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         // Here We Actually Create The Texture Itself, Notice
         // That We Are Using GL_LUMINANCE_ALPHA To Indicate That
@@ -111,44 +111,28 @@ namespace freetype
         glEndList();
     }
 
-    void font_data::init(const char* fname, unsigned int h)
+    void font_data::init(const char* fontPath)
     {
         FT_Library library;
-        FT_Face face;
 
         // Allocate Some Memory To Store The Texture Ids.
         textures = new GLuint[128];
-        this->h = (float)h;
-        // Initialize A FreeType Font Library.
         if (FT_Init_FreeType(&library)) throw std::runtime_error("FT_Init_FreeType failed");
-
-        // This Is Where We Load In The Font Information From The File.
-        // Of All The Places Where The Code Might Die, This Is The Most Likely,
-        // As FT_New_Face Will Fail If The Font File Does Not Exist Or Is Somehow Broken.
-        if (FT_New_Face(library, fname, 0, &face))
+        if (FT_New_Face(library, fontPath, 0, &face))
             throw std::runtime_error("FT_New_Face failed (there is probably a problem with your font file)");
+        glGenTextures(128, textures);
+    }
 
+    void font_data::setFontSize(const char* text, unsigned int fontSize)
+    {
+        this->h = (float)fontSize;
         // For Some Twisted Reason, FreeType Measures Font Size
         // In Terms Of 1/64ths Of Pixels. Thus, To Make A Font
         // h Pixels High, We Need To Request A Size Of h*64.
         // (h << 6 Is Just A Prettier Way Of Writing h*64)
-        FT_Set_Char_Size(face, h << 6, h << 6, 96, 96);
-
-        // Here We Ask OpenGL To Allocate Resources For
-        // All The Textures And Display Lists Which We
-        // Are About To Create.
-        list_base = glGenLists(128);
-        glGenTextures(128, textures);
-
+        FT_Set_Char_Size(face, fontSize << 6, fontSize << 6, 96, 96);
         // This Is Where We Actually Create Each Of The Fonts Display Lists.
-        for (int i = 0; i < 128; i++) make_dlist(face, (char)i, list_base, textures);
-
-        // We Don't Need The Face Information Now That The Display
-        // Lists Have Been Created, So We Free The Assosiated Resources.
-        FT_Done_Face(face);
-
-        // Ditto For The Font Library.
-        FT_Done_FreeType(library);
+        for (int i = 0; i < strlen(text); i++) make_dlist(face, text[i], list_base, textures);
     }
 
     void font_data::clean()
@@ -170,7 +154,7 @@ namespace freetype
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        gluOrtho2D(viewport[0],viewport[2],viewport[1],viewport[3]);
+        gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
         glPopAttrib();
     }
 
@@ -193,15 +177,17 @@ namespace freetype
         return stringSplitList;
     }
 
-    void renderText(const font_data &ft_font, float x, float y, const char* text)
+    void renderText(font_data* ft_font, unsigned int fontSize, float x, float y, const char* text, int curWidth, int curHeight)
     {   // We Want A Coordinate System Where Distance Is Measured In Window Pixels.
-        pushScreenCoordinateMatrix();
-
-        GLuint font = ft_font.list_base;
-        // We Make The Height A Little Bigger. There Will Be Some Space Between Lines.
-        float h = ft_font.h / .63f;
-
+        float modelviewMatrix[16];
+        GLuint font = ft_font->list_base;
+        float h = ft_font->h / .63f; // We Make The Height A Little Bigger. There Will Be Some Space Between Lines.
         std::vector<std::string> lines = splitString(text, '\n');
+        glm::vec2 pos = glm::vec2(x, y);
+
+        ft_font->setFontSize(text, fontSize);
+        glColor3f(0, 0, 0);
+        pushScreenCoordinateMatrix();
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
         glMatrixMode(GL_MODELVIEW);
         glDisable(GL_LIGHTING);
@@ -211,22 +197,11 @@ namespace freetype
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glListBase(font);
-        float modelviewMatrix[16];
         glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
-
-        // This Is Where The Text Display Actually Happens.
-        // For Each Line Of Text We Reset The Modelview Matrix
-        // So That The Line's Text Will Start In The Correct Position.
-        // Notice That We Need To Reset The Matrix, Rather Than Just Translating
-        // Down By h. This Is Because When Each Character Is
-        // Drawn It Modifies The Current Matrix So That The Next Character
-        // Will Be Drawn Immediately After It.
-        glm::vec2 pos = glm::vec2(x, y);
-        float curWidth = (float)glutGet(GLUT_WINDOW_WIDTH);
-        float curHeight = (float)glutGet(GLUT_WINDOW_HEIGHT);
 
         pos = (pos - glm::vec2(-1, -1)) / (glm::vec2(1, 1) - glm::vec2(-1, -1)); // Normalize
         pos *= glm::vec2(curWidth, curHeight); // Translate to screen coordinates
+
         for (int i = 0; i < lines.size(); i++)
         {
             glPushMatrix();
@@ -234,7 +209,7 @@ namespace freetype
 
             glTranslatef(pos.x, pos.y - h * (float)i, 0);
 
-            pos = glm::vec2(pos.x * curWidth, pos.y * curHeight);
+            pos = glm::vec2(pos.x * (float)curWidth, pos.y * (float)curHeight);
             glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
             glMultMatrixf(modelviewMatrix);
             glCallLists((int)lines[i].length(), GL_UNSIGNED_BYTE, lines[i].c_str());

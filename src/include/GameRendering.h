@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cfloat>
+
 #include <TextRendering.h>
 #include <Graphics.h>
 #include <GameLogic.h>
@@ -22,6 +24,8 @@ private:
     constexpr static const float lenTileMarHalf        = lenTileMar * .5f;
     constexpr static const float vertGridRangeOffsHalf = (gridRange / (float)vertScaleSize) * .5f;
 
+    static float tileContainerLength;
+
     static colorClamp* bgColor;
     static colorClamp* gridBgColor;
     static colorClamp* gridColor;
@@ -31,13 +35,22 @@ private:
     static glm::vec2* bRightGridBG;
     static glm::vec2* bLeftGridBG;
 
+    static std::map<const int, std::map<const int, rectPosition*>> tilePositions;
+
+    static freetype::font_data* font;
+
+    static void init();
+    static void calcTilePositions();
     static void display();
+    static void checkAspectRatio();
     static void drawGame();
     static void displayGridBackground();
     static void displayGrid();
 public:
-    static const int initialWidth  =  500;
-    static const int initialHeight =  700;
+    constexpr static const int initialWidth  =  500;
+    constexpr static const int initialHeight =  700;
+    constexpr static const float aspectRatio = (float)initialWidth / (float)initialHeight;
+    static int curWidth, curHeight;
 
     static void show();
 };
