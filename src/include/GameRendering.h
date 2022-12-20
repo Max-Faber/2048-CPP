@@ -15,6 +15,7 @@ private:
     static const int minScreenRange = -1;
     static const int maxScreenRange =  1;
     static const int vertScaleSize  = ABS(minScreenRange) + ABS(minScreenRange);
+    static unsigned int fontSize;
 
     constexpr static const float gridRange             = 1.1f;
     constexpr static const float gridRangeHalf         = gridRange * .5f;
@@ -41,7 +42,6 @@ private:
 
     static void init();
     static void calcTilePositions();
-    static void display();
     static void checkAspectRatio();
     static void drawGame();
     static void displayGridBackground();
@@ -53,4 +53,5 @@ public:
     static int curWidth, curHeight;
 
     static void show();
+    static void display();
 };

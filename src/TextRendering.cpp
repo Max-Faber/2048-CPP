@@ -130,7 +130,8 @@ namespace freetype
         // In Terms Of 1/64ths Of Pixels. Thus, To Make A Font
         // h Pixels High, We Need To Request A Size Of h*64.
         // (h << 6 Is Just A Prettier Way Of Writing h*64)
-        FT_Set_Char_Size(face, fontSize << 6, fontSize << 6, 96, 96);
+//        FT_Set_Char_Size(face, fontSize << 6, fontSize << 6, 960, 960);
+        FT_Set_Pixel_Sizes(face, 0, fontSize);
         // This Is Where We Actually Create Each Of The Fonts Display Lists.
         for (int i = 0; i < strlen(text); i++) make_dlist(face, text[i], list_base, textures);
     }
@@ -185,6 +186,7 @@ namespace freetype
         std::vector<std::string> lines = splitString(text, '\n');
         glm::vec2 pos = glm::vec2(x, y);
 
+        printf("curWidth: %d, curHeight: %d\n", curWidth, curHeight);
         ft_font->setFontSize(text, fontSize);
         glColor3f(0, 0, 0);
         pushScreenCoordinateMatrix();
@@ -199,7 +201,8 @@ namespace freetype
         glListBase(font);
         glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
 
-        pos = (pos - glm::vec2(-1, -1)) / (glm::vec2(1, 1) - glm::vec2(-1, -1)); // Normalize
+        float curAspectRatio = (float)curWidth / (float)curHeight;
+        pos = (pos - glm::vec2(-curAspectRatio, -1)) / (glm::vec2(curAspectRatio, 1) - glm::vec2(-curAspectRatio, -1)); // Normalize
         pos *= glm::vec2(curWidth, curHeight); // Translate to screen coordinates
 
         for (int i = 0; i < lines.size(); i++)
@@ -207,10 +210,12 @@ namespace freetype
             glPushMatrix();
             glLoadIdentity();
 
-            glTranslatef(pos.x, pos.y - h * (float)i, 0);
+//            glTranslatef(pos.x, pos.y - h * (float)i, 0);
+            glTranslatef(pos.x, pos.y, 0);
+//            glTranslatef(curWidth/4, curHeight/4, 0);
 
-            pos = glm::vec2(pos.x * (float)curWidth, pos.y * (float)curHeight);
-            glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
+//            pos = glm::vec2(pos.x * (float)curWidth, pos.y * (float)curHeight);
+//            glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
             glMultMatrixf(modelviewMatrix);
             glCallLists((int)lines[i].length(), GL_UNSIGNED_BYTE, lines[i].c_str());
             glPopMatrix();

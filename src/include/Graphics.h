@@ -36,14 +36,15 @@ struct colorClamp
 
 struct rectPosition
 {
-    glm::vec2 tLeft, tRight, bRight, bLeft;
+    glm::vec2 tLeft, tRight, bRight, bLeft, center;
 
-    rectPosition(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft)
+    rectPosition(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft, glm::vec2 center)
     {
         this->tLeft  = tLeft;
         this->tRight = tRight;
         this->bRight = bRight;
         this->bLeft  = bLeft;
+        this->center = center;
     }
 };
 

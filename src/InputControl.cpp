@@ -23,4 +23,5 @@ void KeyboardControl(int key, int x, int y) {
     }
     GameLogic::spawnTileRandom();
     GameLogic::printGrid();
+    GameRendering::display();
 }
