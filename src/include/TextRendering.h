@@ -41,7 +41,7 @@ namespace freetype
         // The Init Function Will Create A Font With
         // The Height fontSize From The File fontPath.
         void init(const char* fontPath);
-        void setFontSize(const char* text, unsigned int fontSize);
+        std::tuple<int, int> setFontSize(const char* text, unsigned int fontSize);
         // Free All The Resources Associated With The Font.
         void clean();
     };

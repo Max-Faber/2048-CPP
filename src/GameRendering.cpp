@@ -96,7 +96,9 @@ void GameRendering::checkAspectRatio()
 void GameRendering::drawGame()
 {
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight;
-    fontSize = (int)(tileLengthStartEndPixels / 32.5f);
+//    fontSize = (int)(tileLengthStartEndPixels / 32.5f);
+    fontSize = (int)(tileLengthStartEndPixels / 15.f);
+//    fontSize = (int)(tileLengthStartEndPixels / 10.f);
 
     GameRendering::displayGridBackground();
     GameRendering::displayGrid();
@@ -124,12 +126,7 @@ void GameRendering::displayGrid()
             Graphics::drawFilledRoundedRect(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft);
             if (!fPos->tile) continue;
             glm::vec2 newPos = rPos->center;
-
-            glColor3f(0.f, 0.f, 0.f);
-            Graphics::drawFilledCircle(newPos.x, newPos.y, 0.01, 100);
-            freetype::renderText(font, fontSize, newPos.x, newPos.y, std::to_string(fPos->tile->val).c_str(), curWidth, curHeight);
+            freetype::renderText(font, fontSize * (float)(2. / std::to_string(fPos->tile->val).size()), newPos.x, newPos.y, std::to_string(fPos->tile->val).c_str(), curWidth, curHeight);
         }
     }
-    glColor3f(0.f, 0.f, 0.f);
-    Graphics::drawFilledCircle(0.7, -0.9, 0.01, 100);
 }

@@ -12,7 +12,7 @@ namespace freetype
     }
 
     // Create A Display List Corresponding To The Given Character.
-    void make_dlist(FT_Face face, char ch, GLuint list_base, GLuint* tex_base)
+    std::tuple<int, int, int> make_dlist(FT_Face face, char ch, GLuint list_base, GLuint* tex_base)
     {
         // The First Thing We Do Is Get FreeType To Render Our Character
         // Into A Bitmap.  This Actually Requires A Couple Of FreeType Commands:
@@ -109,6 +109,7 @@ namespace freetype
 
         // Finish The Display List
         glEndList();
+        return { glyph->advance.x >> 16/*face->glyph->metrics.horiAdvance >> 6*/, bitmap.rows, face->glyph->metrics.horiBearingX >> 6 };
     }
 
     void font_data::init(const char* fontPath)
@@ -123,8 +124,10 @@ namespace freetype
         glGenTextures(128, textures);
     }
 
-    void font_data::setFontSize(const char* text, unsigned int fontSize)
+    std::tuple<int, int> font_data::setFontSize(const char* text, unsigned int fontSize)
     {
+        std::tuple<int, int> charDimensions = { 0.f, 0.f };
+
         this->h = (float)fontSize;
         // For Some Twisted Reason, FreeType Measures Font Size
         // In Terms Of 1/64ths Of Pixels. Thus, To Make A Font
@@ -133,7 +136,24 @@ namespace freetype
 //        FT_Set_Char_Size(face, fontSize << 6, fontSize << 6, 960, 960);
         FT_Set_Pixel_Sizes(face, 0, fontSize);
         // This Is Where We Actually Create Each Of The Fonts Display Lists.
-        for (int i = 0; i < strlen(text); i++) make_dlist(face, text[i], list_base, textures);
+
+        for (int i = 0; i < strlen(text); i++) {
+            std::tuple<int, int, int> t = make_dlist(face, text[i], list_base, textures);
+            int width = 0;
+
+
+
+//            if (i == strlen(text) - 1) width = std::get<0>(t);
+//            else width = std::get<0>(t) - (std::get<2>(t) / 2);
+            width = std::get<0>(t);
+//            if (i == 0 || i == strlen(text) - 1) width = std::get<2>(t);
+//            else width = std::get<0>(t);
+            charDimensions = {
+                    std::get<0>(charDimensions) + width,
+                    std::max(std::get<1>(charDimensions), std::get<1>(t))
+            };
+        }
+        return charDimensions;
     }
 
     void font_data::clean()
@@ -183,11 +203,22 @@ namespace freetype
         float modelviewMatrix[16];
         GLuint font = ft_font->list_base;
         float h = ft_font->h / .63f; // We Make The Height A Little Bigger. There Will Be Some Space Between Lines.
+
+//        if (strcmp(text, "16") == 0)
+//        {
+//            text = "88";
+//        }
+
         std::vector<std::string> lines = splitString(text, '\n');
         glm::vec2 pos = glm::vec2(x, y);
 
+
 //        printf("curWidth: %d, curHeight: %d\n", curWidth, curHeight);
-        ft_font->setFontSize(text, fontSize);
+        if (strcmp(text, "32") == 0)
+        {
+            int a = 5;
+        }
+        std::tuple<int, int> charDimensions = ft_font->setFontSize(text, fontSize);
         glColor3f(0, 0, 0);
         pushScreenCoordinateMatrix();
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
@@ -210,7 +241,7 @@ namespace freetype
             glPushMatrix();
             glLoadIdentity();
 
-            glTranslatef(pos.x, pos.y - h * (float)i, 0);
+            glTranslatef(pos.x - ((float)std::get<0>(charDimensions) / 2.f), pos.y - ((float)std::get<1>(charDimensions) / 2.f) - h * (float)i, 0);
             glMultMatrixf(modelviewMatrix);
             glCallLists((int)lines[i].length(), GL_UNSIGNED_BYTE, lines[i].c_str());
             glPopMatrix();

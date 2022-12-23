@@ -67,5 +67,6 @@ public:
     static void initialize();
     static void printGrid();
     static bool mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim);
+    static void spawnTileRandomTest(int val);
     static void spawnTileRandom();
 };

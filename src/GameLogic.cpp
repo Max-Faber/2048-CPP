@@ -43,8 +43,29 @@ void GameLogic::initializeTileFields()
 
 void GameLogic::initializeGame()
 {
-    for (int _ = 0; _ < initialTileCnt; _++) spawnTileRandom();
-    printGrid();
+//    for (int _ = 0; _ < initialTileCnt; _++) spawnTileRandom();
+    spawnTileRandomTest(512);
+    spawnTileRandomTest(1024);
+    spawnTileRandomTest(2048);
+    spawnTileRandomTest(4096);
+    spawnTileRandomTest(8192);
+    spawnTileRandomTest(16384);
+    spawnTileRandomTest(65536);
+    spawnTileRandomTest(131072);
+}
+
+void GameLogic::spawnTileRandomTest(int val)
+{
+    FieldPos *pos;
+    int tileSetUpperRange                          = (int)emptyFieldPositions.size() - 1;
+    std::uniform_int_distribution<> distTileCoords = std::uniform_int_distribution<>(0, tileSetUpperRange);
+    std::uniform_int_distribution<> distTileVal    = std::uniform_int_distribution<>(1, 2);
+    std::set<FieldPos*>::iterator randFieldPosIt   = emptyFieldPositions.begin();
+
+    std::advance(randFieldPosIt, distTileCoords(*gen));
+    pos = *randFieldPosIt;
+    pos->tile = new Tile(val);
+    emptyFieldPositions.erase(randFieldPosIt);
 }
 
 void GameLogic::spawnTileRandom()
