@@ -51,8 +51,8 @@ private:
     static void initializeRandom();
     static void initializeTileFields();
     static void initializeGame();
-    static void mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap);
-    static void fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap);
+    static bool mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap);
+    static bool fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap);
 public:
     constexpr static const int gridDimension = 4;
     // Key of map is the index of the corresponding column (zero-based)
@@ -66,6 +66,6 @@ public:
 
     static void initialize();
     static void printGrid();
-    static void mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim);
+    static bool mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandom();
 };

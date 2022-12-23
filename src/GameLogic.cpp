@@ -38,34 +38,12 @@ void GameLogic::initializeTileFields()
         fieldTileRows[y][x] = pos;
         fieldTileRowsReversed[y][gridDimension - x - 1] = pos;
         emptyFieldPositions.insert(pos);
-        printf("(%d, %d)\n", x, y);
     }
 }
 
 void GameLogic::initializeGame()
 {
-    printf("\n");
     for (int _ = 0; _ < initialTileCnt; _++) spawnTileRandom();
-
-//    FieldPos* pos1 = fieldTileRows[0][0];
-//    FieldPos* pos2 = fieldTileRows[0][1];
-//    FieldPos* pos3 = fieldTileRows[0][2];
-//    FieldPos* pos4 = fieldTileRows[0][3];
-//    FieldPos* pos5 = fieldTileRows[0][4];
-//    FieldPos* pos6 = fieldTileRows[0][5];
-//
-//    pos1->tile = new Tile(8);
-//    pos2->tile = new Tile(4);
-////    pos3->tile = new Tile(2);
-//    pos4->tile = new Tile(2);
-//    pos5->tile = new Tile(2);
-////    pos6->tile = new Tile(2);
-//    emptyFieldPositions.erase(pos1);
-//    emptyFieldPositions.erase(pos2);
-//    emptyFieldPositions.erase(pos3);
-//    emptyFieldPositions.erase(pos4);
-//    emptyFieldPositions.erase(pos5);
-//    emptyFieldPositions.erase(pos6);
     printGrid();
 }
 
@@ -87,12 +65,8 @@ void GameLogic::printGrid()
 {
     for (const std::pair<const int, std::map<int, FieldPos*>>& fieldTileRow : fieldTileColumns)
     {
-        int x = fieldTileRow.first;
-
         for (std::pair<const int, FieldPos*> fieldTile : fieldTileRow.second)
         {
-            int y = fieldTile.first;
-
             if (!fieldTile.second->tile) { printf("#\t"); continue; }
             printf("%d\t", fieldTile.second->tile->val);
         }
@@ -101,20 +75,24 @@ void GameLogic::printGrid()
     printf("\n");
 }
 
-void GameLogic::mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim)
+bool GameLogic::mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim)
 {
-    if (gridDimension < 2) return;
+    bool tilesMoved = false;
+
+    if (gridDimension < 2) return tilesMoved;
     for (std::pair<const int, std::map<int, FieldPos*>> fieldTilesOneDim : fieldTilesTwoDim)
     {
-        mergeTileMap(fieldTilesOneDim.second);
-        fillTileGaps(fieldTilesOneDim.second);
+        tilesMoved |= mergeTileMap(fieldTilesOneDim.second);
+        tilesMoved |= fillTileGaps(fieldTilesOneDim.second);
     }
+    return tilesMoved;
 }
 
-void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap)
+bool GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap)
 {
     std::map<int, FieldPos*>::iterator itPosLeft, itPosRight;
     std::map<int, FieldPos*>::iterator fieldTilesMapEnd;
+    bool tilesMerged = false;
 
     itPosLeft        = fieldTilesMap.begin();
     itPosRight       = std::next(fieldTilesMap.begin());
@@ -130,6 +108,7 @@ void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap)
             delete posRight->tile;
             posRight->tile = nullptr;
             emptyFieldPositions.insert(posRight);
+            tilesMerged |= true;
         }
         else if (posLeft->tile && !posRight->tile)
         {
@@ -140,10 +119,12 @@ void GameLogic::mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap)
         itPosLeft++;
         itPosRight++;
     } while (itPosRight != fieldTilesMapEnd);
+    return tilesMerged;
 }
 
-void GameLogic::fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap)
+bool GameLogic::fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap)
 {
+    bool tilesMoved = false;
     FieldPos* curEmptyPosition = nullptr;
     std::vector<FieldPos*> emptyPositions = { };
 
@@ -160,10 +141,13 @@ void GameLogic::fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap)
             emptyPositions.erase(it);
         }
         if (!pos.second->tile) continue;
+        tilesMoved = true;
         curEmptyPosition->tile = pos.second->tile;
+        emptyFieldPositions.insert(pos.second);
         emptyFieldPositions.erase(curEmptyPosition);
         emptyPositions.push_back(pos.second);
         pos.second->tile = nullptr;
         curEmptyPosition = nullptr;
     }
+    return tilesMoved;
 }

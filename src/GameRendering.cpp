@@ -54,8 +54,6 @@ void GameRendering::calcTilePositions()
 
             minLength = std::min(minLength, x - lenTileMarHalf);
             maxLength = std::max(maxLength, x + lenTileMarHalf);
-//            printf("(%d, %d), x: %f, y: %f\n", row, column, x, y);
-//            Graphics::drawFilledCircle(x, y, 360, 100);
             tilePositions[row][column] = new rectPosition(
                     glm::vec2(x - lenTileMarHalf, y + lenTileMarHalf),
                     glm::vec2(x + lenTileMarHalf, y + lenTileMarHalf),
@@ -99,14 +97,12 @@ void GameRendering::drawGame()
 {
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight;
     fontSize = (int)(tileLengthStartEndPixels / 32.5f);
-    const char* text = "Test 2048!";
 
     GameRendering::displayGridBackground();
     GameRendering::displayGrid();
 
     glm::vec2 pos = glm::vec2((float)curWidth * 0.2f, (float)curHeight * 0.2f);
     glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
-    freetype::renderText(font, fontSize, newPos.x, newPos.y, text, curWidth, curHeight);
 }
 
 void GameRendering::displayGridBackground()
@@ -127,16 +123,11 @@ void GameRendering::displayGrid()
             glColor3f(gridColor->R, gridColor->G, gridColor->B);
             Graphics::drawFilledRoundedRect(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft);
             if (!fPos->tile) continue;
-//            glm::vec2 pos = (glm::vec2(rPos->center.x, rPos->center.y) - glm::vec2(-1, -1)) / (glm::vec2(1, 1) - glm::vec2(-1, -1)); // Normalize
-//            glm::vec2 newPos = (pos * glm::vec2(2, 2));// - glm::vec2(1, 1);
             glm::vec2 newPos = rPos->center;
 
             glColor3f(0.f, 0.f, 0.f);
             Graphics::drawFilledCircle(newPos.x, newPos.y, 0.01, 100);
-//            newPos.x = ((newPos.x - -1) / (1 - -1)) * (aspectRatio - -aspectRatio) + -aspectRatio;
             freetype::renderText(font, fontSize, newPos.x, newPos.y, std::to_string(fPos->tile->val).c_str(), curWidth, curHeight);
-
-
         }
     }
     glColor3f(0.f, 0.f, 0.f);

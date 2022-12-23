@@ -1,27 +1,30 @@
 #include <InputControl.h>
 
-void KeyboardControl(int key, int x, int y) {
+void KeyboardControl(int key, int x, int y)
+{
+    bool tilesMoved = false;
+
     switch (key) {
         case GLUT_KEY_UP:
             printf("Up\n");
-            GameLogic::mergeTiles(GameLogic::fieldTileRows);
+            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileRows);
             break;
         case GLUT_KEY_DOWN:
             printf("Down\n");
-            GameLogic::mergeTiles(GameLogic::fieldTileRowsReversed);
+            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileRowsReversed);
             break;
         case GLUT_KEY_LEFT:
             printf("Left\n");
-            GameLogic::mergeTiles(GameLogic::fieldTileColumns);
+            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileColumns);
             break;
         case GLUT_KEY_RIGHT:
             printf("Right\n");
-            GameLogic::mergeTiles(GameLogic::fieldTileColumnsReversed);
+            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileColumnsReversed);
             break;
         default:
             return;
     }
-    GameLogic::spawnTileRandom();
+    if (tilesMoved) GameLogic::spawnTileRandom();
     GameLogic::printGrid();
     GameRendering::display();
 }

@@ -186,7 +186,7 @@ namespace freetype
         std::vector<std::string> lines = splitString(text, '\n');
         glm::vec2 pos = glm::vec2(x, y);
 
-        printf("curWidth: %d, curHeight: %d\n", curWidth, curHeight);
+//        printf("curWidth: %d, curHeight: %d\n", curWidth, curHeight);
         ft_font->setFontSize(text, fontSize);
         glColor3f(0, 0, 0);
         pushScreenCoordinateMatrix();
@@ -210,12 +210,7 @@ namespace freetype
             glPushMatrix();
             glLoadIdentity();
 
-//            glTranslatef(pos.x, pos.y - h * (float)i, 0);
-            glTranslatef(pos.x, pos.y, 0);
-//            glTranslatef(curWidth/4, curHeight/4, 0);
-
-//            pos = glm::vec2(pos.x * (float)curWidth, pos.y * (float)curHeight);
-//            glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
+            glTranslatef(pos.x, pos.y - h * (float)i, 0);
             glMultMatrixf(modelviewMatrix);
             glCallLists((int)lines[i].length(), GL_UNSIGNED_BYTE, lines[i].c_str());
             glPopMatrix();
