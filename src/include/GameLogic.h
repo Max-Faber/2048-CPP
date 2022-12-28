@@ -51,22 +51,22 @@ private:
     static void initializeRandom();
     static void initializeTileFields();
     static void initializeGame();
-    static bool mergeTileMap(std::map<int, FieldPos*>& fieldTilesMap);
-    static bool fillTileGaps(std::map<int, FieldPos*>& fieldTilesMap);
+    static bool mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap);
+    static bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap);
 public:
     constexpr static const int gridDimension = 4;
     // Key of map is the index of the corresponding column (zero-based)
     // Key of the nested map is the index of the corresponding row (zero-based)
-    static std::map<int, std::map<int, FieldPos*>> fieldTileColumns;
-    static std::map<int, std::map<int, FieldPos*>> fieldTileColumnsReversed;
+    static std::map<const int, std::map<const int, FieldPos*>> fieldTileColumns;
+    static std::map<const int, std::map<const int, FieldPos*>> fieldTileColumnsReversed;
     // Key of map is the index of the corresponding row (zero-based)
     // Key of the nested map is the index of the corresponding column (zero-based)
-    static std::map<int, std::map<int, FieldPos*>> fieldTileRows;
-    static std::map<int, std::map<int, FieldPos*>> fieldTileRowsReversed;
+    static std::map<const int, std::map<const int, FieldPos*>> fieldTileRows;
+    static std::map<const int, std::map<const int, FieldPos*>> fieldTileRowsReversed;
 
     static void initialize();
     static void printGrid();
-    static bool mergeTiles(const std::map<int, std::map<int, FieldPos*>>& fieldTilesTwoDim);
+    static bool mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandomTest(int val);
     static void spawnTileRandom();
 };

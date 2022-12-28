@@ -6,6 +6,20 @@
 colorClamp* GameRendering::bgColor     = new colorClamp(220, 220, 220);
 colorClamp* GameRendering::gridBgColor = new colorClamp(178, 168, 158);
 colorClamp* GameRendering::gridColor   = new colorClamp(204, 192, 180);
+std::map<const unsigned int, colorClamp*> GameRendering::tileColors = {
+        { pow(BASE_NUMBER,  1), new colorClamp(235, 224, 212) }, //    2
+        { pow(BASE_NUMBER,  2), new colorClamp(235, 220, 192) }, //    4
+        { pow(BASE_NUMBER,  3), new colorClamp(244, 166, 111) }, //    8
+        { pow(BASE_NUMBER,  4), new colorClamp(238, 128,  75) }, //   16
+        { pow(BASE_NUMBER,  5), new colorClamp(250, 109,  85) }, //   32
+        { pow(BASE_NUMBER,  6), new colorClamp(235,  72,  50) }, //   64
+        { pow(BASE_NUMBER,  7), new colorClamp(245, 211,  97) }, //  128
+        { pow(BASE_NUMBER,  8), new colorClamp(242, 201,  68) }, //  256
+        { pow(BASE_NUMBER,  9), new colorClamp(228, 184,  41) }, //  512
+        { pow(BASE_NUMBER, 10), new colorClamp(225, 177,  25) }, // 1024
+        { pow(BASE_NUMBER, 11), new colorClamp(236, 188,  16) }, // 2048
+        { pow(BASE_NUMBER, 12), new colorClamp( 70, 215, 135) }  // 4096
+};
 
 unsigned int GameRendering::fontSize;
 
@@ -96,12 +110,11 @@ void GameRendering::checkAspectRatio()
 void GameRendering::drawGame()
 {
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight;
-//    fontSize = (int)(tileLengthStartEndPixels / 32.5f);
     fontSize = (int)(tileLengthStartEndPixels / 15.f);
-//    fontSize = (int)(tileLengthStartEndPixels / 10.f);
 
-    GameRendering::displayGridBackground();
-    GameRendering::displayGrid();
+    displayGridBackground();
+    displayGrid();
+    displayColoredGrid();
 
     glm::vec2 pos = glm::vec2((float)curWidth * 0.2f, (float)curHeight * 0.2f);
     glm::vec2 newPos = ((pos / glm::vec2(curWidth, curHeight)) * glm::vec2(2, 2)) - glm::vec2(1, 1);
@@ -122,11 +135,39 @@ void GameRendering::displayGrid()
             FieldPos* fPos = GameLogic::fieldTileRows[row.first][column.first];
             rectPosition* rPos = column.second;
 
+
             glColor3f(gridColor->R, gridColor->G, gridColor->B);
             Graphics::drawFilledRoundedRect(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft);
-            if (!fPos->tile) continue;
-            glm::vec2 newPos = rPos->center;
-            freetype::renderText(font, fontSize * (float)(2. / std::to_string(fPos->tile->val).size()), newPos.x, newPos.y, std::to_string(fPos->tile->val).c_str(), curWidth, curHeight);
+        }
+    }
+}
+
+void GameRendering::displayColoredGrid()
+{
+    for (const std::pair<const int, std::map<const int, FieldPos*>>& row : GameLogic::fieldTileRows)
+    {
+        for (std::pair<const int, FieldPos*> column : row.second)
+        {
+            FieldPos* pos = column.second;
+            rectPosition* rPos = tilePositions[pos->y][pos->x];
+            float fSize = (float)fontSize;
+
+            if (!pos->tile) continue;
+            std::string valStr = std::to_string(pos->tile->val);
+            colorClamp* color = tileColors[pos->tile->val];
+
+            glColor3f(color->R, color->G, color->B);
+            Graphics::drawFilledRoundedRect(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft);
+            if (valStr.size() > 2) fSize = fSize * (float)(2.75 / ((float)(float)valStr.size()));
+            freetype::renderText(
+                    font,
+                    fSize,
+                    rPos->center.x,
+                    rPos->center.y,
+                    valStr.c_str(),
+                    curWidth,
+                    curHeight
+            );
         }
     }
 }

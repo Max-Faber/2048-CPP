@@ -8,6 +8,7 @@
 #include <InputControl.h>
 
 #define ABS(N) ((N<0) ? (-N) : (N))
+#define BASE_NUMBER 2
 
 class GameRendering
 {
@@ -30,6 +31,7 @@ private:
     static colorClamp* bgColor;
     static colorClamp* gridBgColor;
     static colorClamp* gridColor;
+    static std::map<const unsigned int, colorClamp*> tileColors;
 
     static glm::vec2* tLeftGridBG;
     static glm::vec2* tRightGridBG;
@@ -46,6 +48,7 @@ private:
     static void drawGame();
     static void displayGridBackground();
     static void displayGrid();
+    static void displayColoredGrid();
 public:
     constexpr static const int initialWidth  =  500;
     constexpr static const int initialHeight =  700;
