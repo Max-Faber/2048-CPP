@@ -3,12 +3,8 @@
 #include <cstdio>
 #include <cmath>
 #include <glm/vec2.hpp>
-#ifdef __APPLE_CC__
-    #define GL_SILENCE_DEPRECATION
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
+#include <GLFW/glfw3.h>
+#include <InputControl.h>
 
 #ifdef _WIN32
     #include <corecrt_math_defines.h>
@@ -46,6 +42,18 @@ struct rectPosition
         this->bLeft  = bLeft;
         this->center = center;
     }
+
+    rectPosition operator - (rectPosition const &obj) const
+    {
+        rectPosition res(tLeft, tRight, bRight, bLeft, center);
+
+        res.tLeft  -= obj.tLeft;
+        res.tRight -= obj.tRight;
+        res.bRight -= obj.bRight;
+        res.bLeft  -= obj.bLeft;
+        res.center -= obj.center;
+        return res;
+    }
 };
 
 class Graphics
@@ -60,6 +68,7 @@ private:
     constexpr const static float twoPi        = M_PI * 2.0f;
 
 public:
+    static GLFWwindow* window;
     static void init(int argc, char** argv, int initialWidth, int initialHeight);
 
     static void drawFilledRoundedRect(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft, float radOffsFrac = .025f);

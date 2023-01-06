@@ -12,27 +12,23 @@ add_executable(
         2048_C__
         src/main.cpp
         src/GameRendering.cpp
-        src/GameLogic.cpp
+        src/GameState.cpp
         src/Graphics.cpp
         src/CartesianProduct.cpp
         src/InputControl.cpp
         src/TextRendering.cpp
-#        Libraries/lib/glad/glad.c
 )
 
 if (APPLE)
-    set(GLUT "-framework GLUT -framework OpenGL")
-#    link_libraries(${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.6.dylib)
+    set(GLFW ${CUR_DIR}/Libraries/lib/MacOS/glfw/libglfw.dylib)
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.dylib)
-#    link_libraries(${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.dylib)
 elseif (WIN32)
     set(LIB_DIR ${CMAKE_CURRENT_BINARY_DIR})
-    set(GLUT_DIR ${CUR_DIR}/Libraries/lib/Windows/GLUT)
-    set(GLUT ${GLUT_DIR}/glut32.lib)
-    list(APPEND LIBS_TO_COPY ${GLUT_DIR}/glut32.dll)
+    set(GLFW ${CUR_DIR}/Libraries/lib/Windows/glfw/glfw3.lib)
 
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.lib)
     list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.pdb)
+    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.dll)
 endif ()
 
 add_custom_command(
@@ -40,6 +36,13 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CUR_DIR}/Dependencies/fonts/arial.ttf
         ${CMAKE_BINARY_DIR}/fonts/arial.ttf
+)
+
+add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CUR_DIR}/Dependencies/fonts/SmallMemory.ttf
+        ${CMAKE_BINARY_DIR}/fonts/SmallMemory.ttf
 )
 
 foreach (path ${LIBS_TO_COPY})
@@ -53,8 +56,11 @@ foreach (path ${LIBS_TO_COPY})
     )
 endforeach ()
 
+find_package(OpenGL REQUIRED)
+
 target_link_libraries(
         2048_C__
-        ${GLUT}
         ${FREE_TYPE}
+        ${GLFW}
+        OpenGL::GL
 )

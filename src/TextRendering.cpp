@@ -175,7 +175,7 @@ namespace freetype
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        gluOrtho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+        glOrtho(viewport[0], viewport[2], viewport[1], viewport[3], -1, 1);
         glPopAttrib();
     }
 
@@ -203,23 +203,11 @@ namespace freetype
         float modelviewMatrix[16];
         GLuint font = ft_font->list_base;
         float h = ft_font->h / .63f; // We Make The Height A Little Bigger. There Will Be Some Space Between Lines.
-
-//        if (strcmp(text, "16") == 0)
-//        {
-//            text = "88";
-//        }
-
         std::vector<std::string> lines = splitString(text, '\n');
         glm::vec2 pos = glm::vec2(x, y);
 
-
-//        printf("curWidth: %d, curHeight: %d\n", curWidth, curHeight);
-        if (strcmp(text, "32") == 0)
-        {
-            int a = 5;
-        }
         std::tuple<int, int> charDimensions = ft_font->setFontSize(text, fontSize);
-        glColor3f(0, 0, 0);
+//        glColor3f(0, 0, 0);
         pushScreenCoordinateMatrix();
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
         glMatrixMode(GL_MODELVIEW);

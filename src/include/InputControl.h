@@ -1,12 +1,14 @@
 #pragma once
 
 #include <cstdio>
-#include <GameLogic.h>
-#include <GameRendering.h>
-#ifdef __APPLE_CC__
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
+#include <GameState.h>
+#include <GLFW/glfw3.h>
 
-void KeyboardControl(int key, int x, int y);
+class InputControl
+{
+public:
+    static bool redrawRequired;
+
+    static void keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void resizeControl(GLFWwindow* window, int width, int height);
+};

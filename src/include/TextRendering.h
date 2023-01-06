@@ -11,12 +11,15 @@
 
 
 // OpenGL Headers
-#ifdef __APPLE_CC__
-    #define GL_SILENCE_DEPRECATION
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
+//#ifdef __APPLE_CC__
+//    #define GL_SILENCE_DEPRECATION
+//    #include <GLUT/glut.h>
+//#else
+//    #include <GL/glut.h>
+//#endif
+
+//#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 // Some STL Headers
 #include <vector>

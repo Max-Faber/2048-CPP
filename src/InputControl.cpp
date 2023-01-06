@@ -1,30 +1,41 @@
 #include <InputControl.h>
 
-void KeyboardControl(int key, int x, int y)
-{
-    bool tilesMoved = false;
+bool InputControl::redrawRequired = true;
 
-    switch (key) {
-        case GLUT_KEY_UP:
+void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    bool tilesMoved;
+
+    if (action != GLFW_PRESS) return;
+    if (key == GLFW_KEY_ESCAPE) { glfwSetWindowShouldClose(window, GL_TRUE); return; }
+    switch (key)
+    {
+        case GLFW_KEY_UP:
             printf("Up\n");
-            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileRows);
+            tilesMoved = GameState::mergeTiles(GameState::fieldTileRows);
             break;
-        case GLUT_KEY_DOWN:
+        case GLFW_KEY_DOWN:
             printf("Down\n");
-            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileRowsReversed);
+            tilesMoved = GameState::mergeTiles(GameState::fieldTileRowsReversed);
             break;
-        case GLUT_KEY_LEFT:
+        case GLFW_KEY_LEFT:
             printf("Left\n");
-            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileColumns);
+            tilesMoved = GameState::mergeTiles(GameState::fieldTileColumns);
             break;
-        case GLUT_KEY_RIGHT:
+        case GLFW_KEY_RIGHT:
             printf("Right\n");
-            tilesMoved = GameLogic::mergeTiles(GameLogic::fieldTileColumnsReversed);
+            tilesMoved = GameState::mergeTiles(GameState::fieldTileColumnsReversed);
             break;
         default:
             return;
     }
-    if (tilesMoved) GameLogic::spawnTileRandom();
-    GameLogic::printGrid();
-    GameRendering::display();
+    GameState::printGrid();
+    if (tilesMoved) GameState::spawnTileRandom();
+    GameState::printGrid();
+    redrawRequired = true;
+}
+
+void InputControl::resizeControl(GLFWwindow* window, int width, int height)
+{
+    redrawRequired = true;
 }

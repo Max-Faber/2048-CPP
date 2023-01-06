@@ -1,9 +1,14 @@
 #include <Graphics.h>
 
+GLFWwindow* Graphics::window;
+
 void Graphics::init(int argc, char** argv, int initialWidth, int initialHeight)
 {
-    glutInit(&argc, argv);
-    glutInitWindowSize(initialWidth, initialHeight);
+    glfwInit();
+    window = glfwCreateWindow(initialWidth, initialHeight, "2048-CPP", nullptr, nullptr);
+    glfwMakeContextCurrent(window);
+    glfwSetWindowSizeCallback(window, InputControl::resizeControl);
+    glfwSetKeyCallback(window, InputControl::keyboardControl);
 }
 
 void Graphics::drawFilledRoundedRect(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft, float radOffsFrac)
