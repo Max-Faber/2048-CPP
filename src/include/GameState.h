@@ -79,7 +79,7 @@ public:
     static void printGrid();
     static bool mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandomTest(int val);
-    static void spawnTileRandom();
+    static FieldPos* spawnTileRandom();
 };
 
 struct TransitionInfo

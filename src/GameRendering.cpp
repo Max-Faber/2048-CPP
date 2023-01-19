@@ -48,7 +48,6 @@ void GameRendering::show()
     {
         glfwWaitEvents();
         if (!InputControl::redrawRequired) continue;
-
         display();
         printf("drawCount: %d\n", drawCount+=1);
         InputControl::redrawRequired = false;
@@ -103,46 +102,53 @@ void GameRendering::display()
     glLoadIdentity();
     glOrtho(-curAspectRatio, curAspectRatio, minScreenRange, maxScreenRange, -1, 1);
     drawGame();
-    glFlush(); // Flush drawing command buffer to make drawing happen as soon as possible.
+//    drawNewTile();
 }
 
 void GameRendering::drawGame()
 {
-    double deadline;
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight;
-    const int fps = 60;
+    float totSecs = .1;
+    const int limitFPS = 120, totFrames = (int)(totSecs * limitFPS);
+    double timeStepSeconds = totSecs / (double)totFrames;
     int fpsCnt = 0;
-    double totSecs = .15, fpsPeriod = 1. / fps;
-    const int totFrames = totSecs * fps;
 
     fontSize = (int)(tileLengthStartEndPixels / 15.f);
     glfwSetTime(0.);
-    deadline = glfwGetTime();
-    while (glfwGetTime() < totSecs)
-    {
-        double endTime;
+    double curTime;
 
+    double deadline = 0.;
+    while (true/*(curTime = glfwGetTime()) < totSecs*/)
+    {
         if (glfwWindowShouldClose(Graphics::window)) break;
-        deadline += fpsPeriod;
-        fpsCnt += 1;
-        transitionFrac = fpsCnt == totFrames ? 1. : (float)glfwGetTime() / (float)totSecs;
+        if ((transitionFrac = (float)glfwGetTime() / totSecs) > 1) transitionFrac = 1;
         glClearColor(bgColor->R, bgColor->G, bgColor->B, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         displayGridBackground();
         displayGrid();
+        fpsCnt += 1;
+        curTime = glfwGetTime();
+        deadline += timeStepSeconds;
+        if (limitFPS != -1 && curTime < deadline)
+        {
+            usleep((uint)((deadline - curTime) * 1000000));
+            /*printf("curTime: %f\n", curTime); */
+        }
+        if (transitionFrac == 1.) break;
+
+//        printf("deadline: %f\n", deadline);
+
+
+
         glfwSwapBuffers(Graphics::window);
         glfwPollEvents();
-        glFlush(); // Flush drawing command buffer to make drawing happen as soon as possible.
-        endTime = glfwGetTime();
-        if (endTime < deadline)
-        {
-            unsigned int sleepMicros = (unsigned int)((deadline - endTime) * 1000000);
-
-            usleep(sleepMicros);
-        }
     }
-    printf("Avg fps: %d\n", (int)((double)fpsCnt / totSecs));
+    double test = (double)fpsCnt / glfwGetTime();
 
+    int a = (int)test;
+    int b = ceil(test);
+    printf("Avg fps: %d\n", (int)ceil( ((double)fpsCnt / glfwGetTime()) ) );
+    drawNewTile(); fpsCnt++;
     // Cleanup transitions and merges
     for (const std::pair<const int, std::map<const int, TransitionInfo *>>& tInfoMap : GameState::transitions)
     {
@@ -198,6 +204,15 @@ void GameRendering::displayGrid()
     }
 }
 
+void GameRendering::drawNewTile()
+{
+    FieldPos* fPos = GameState::spawnTileRandom();
+
+    GameState::printGrid();
+    drawTile(fPos, fPos->x, fPos->y);
+    glfwSwapBuffers(Graphics::window);
+}
+
 void GameRendering::drawTile(FieldPos* fPos, int x, int y)
 {
     std::map<const unsigned int, colorClamp*>::iterator colorIt = tileColors.find(fPos->tile->val);
@@ -206,7 +221,7 @@ void GameRendering::drawTile(FieldPos* fPos, int x, int y)
     unsigned long valStrSize = valStr.size();
     float fSize = (float)fontSize;
     colorClamp* color;
-    TransitionInfo* tInfo = TransitionInfo::getTransitionInfo(y, x);
+    TransitionInfo* tInfo = TransitionInfo::getTransitionInfo(fPos->x, fPos->y);
     rectPosition posTrans = rectPosition(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft, rPos->center);
 
     if (colorIt == tileColors.end()) colorIt = tileColors.find(2048);

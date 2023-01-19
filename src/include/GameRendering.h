@@ -49,6 +49,7 @@ private:
     static void drawGame();
     static void displayGridBackground();
     static void displayGrid();
+    static void drawNewTile();
     static void drawTile(FieldPos* fPos, int x, int y);
 public:
     constexpr static const int initialWidth  =  600;

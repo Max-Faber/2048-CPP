@@ -4,14 +4,12 @@ bool InputControl::redrawRequired = true;
 
 void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    bool tilesMoved;
+    bool tilesMoved = false;
 
     if (redrawRequired) return;
-
     if (action != GLFW_PRESS) return;
     if (key == GLFW_KEY_ESCAPE) { glfwSetWindowShouldClose(window, GL_TRUE); return; }
-    switch (key)
-    {
+    switch (key) {
         case GLFW_KEY_UP:
             printf("Up\n");
             tilesMoved = GameState::mergeTiles(GameState::fieldTileRows);
@@ -31,8 +29,5 @@ void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, in
         default:
             return;
     }
-    GameState::printGrid();
-    if (tilesMoved) GameState::spawnTileRandom();
-    GameState::printGrid();
-    redrawRequired = true;
+    redrawRequired = tilesMoved;
 }

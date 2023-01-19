@@ -70,7 +70,7 @@ void GameState::spawnTileRandomTest(int val)
     emptyFieldPositions.erase(randFieldPosIt);
 }
 
-void GameState::spawnTileRandom()
+FieldPos* GameState::spawnTileRandom()
 {
     FieldPos *pos;
     int tileSetUpperRange                          = (int)emptyFieldPositions.size() - 1;
@@ -82,6 +82,7 @@ void GameState::spawnTileRandom()
     pos = *randFieldPosIt;
     pos->tile = new Tile(distTileVal(*gen) < 0.9 ? 2 : 4);
     emptyFieldPositions.erase(randFieldPosIt);
+    return pos;
 }
 
 void GameState::printGrid()
