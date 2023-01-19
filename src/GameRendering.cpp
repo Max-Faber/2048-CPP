@@ -25,7 +25,7 @@ std::map<const unsigned int, colorClamp*> GameRendering::tileColors = {
 
 unsigned int GameRendering::fontSize;
 
-float GameRendering::tileContainerLength;
+float GameRendering::tileContainerLength, GameRendering::transitionFrac;
 
 glm::vec2* GameRendering::tLeftGridBG  = new glm::vec2(-gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
 glm::vec2* GameRendering::tRightGridBG = new glm::vec2( gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
@@ -40,7 +40,7 @@ int GameRendering::curWidth, GameRendering::curHeight;
 
 void GameRendering::show()
 {
-    int a = 0;
+    int drawCount = 0;
 
     init();
     glfwSetWindowAspectRatio(Graphics::window, initialWidth, initialHeight);
@@ -48,9 +48,9 @@ void GameRendering::show()
     {
         glfwWaitEvents();
         if (!InputControl::redrawRequired) continue;
+
         display();
-        glfwSwapBuffers(Graphics::window);
-        printf("a: %d\n", a+=1);
+        printf("drawCount: %d\n", drawCount+=1);
         InputControl::redrawRequired = false;
     }
     glfwDestroyWindow(Graphics::window);
@@ -62,7 +62,6 @@ void GameRendering::init()
 {
     calcTilePositions();
     font = new freetype::font_data();
-    // font->init("fonts/arial.ttf");
     font->init("fonts/SmallMemory.ttf");
 }
 
@@ -96,11 +95,10 @@ void GameRendering::calcTilePositions()
 
 void GameRendering::display()
 {
-    glfwGetWindowSize(Graphics::window, &curWidth, &curHeight);
-    float curAspectRatio = (float)(curWidth) / (float)(curHeight);
+    float curAspectRatio;
 
-    glClearColor(bgColor->R, bgColor->G, bgColor->B, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glfwGetWindowSize(Graphics::window, &curWidth, &curHeight);
+    curAspectRatio = (float)(curWidth) / (float)(curHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-curAspectRatio, curAspectRatio, minScreenRange, maxScreenRange, -1, 1);
@@ -110,12 +108,64 @@ void GameRendering::display()
 
 void GameRendering::drawGame()
 {
+    double deadline;
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight;
-//    double lastTime = glfwGetTime();
+    const int fps = 60;
+    int fpsCnt = 0;
+    double totSecs = .15, fpsPeriod = 1. / fps;
+    const int totFrames = totSecs * fps;
 
     fontSize = (int)(tileLengthStartEndPixels / 15.f);
-    displayGridBackground();
-    displayGrid();
+    glfwSetTime(0.);
+    deadline = glfwGetTime();
+    while (glfwGetTime() < totSecs)
+    {
+        double endTime;
+
+        if (glfwWindowShouldClose(Graphics::window)) break;
+        deadline += fpsPeriod;
+        fpsCnt += 1;
+        transitionFrac = fpsCnt == totFrames ? 1. : (float)glfwGetTime() / (float)totSecs;
+        glClearColor(bgColor->R, bgColor->G, bgColor->B, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        displayGridBackground();
+        displayGrid();
+        glfwSwapBuffers(Graphics::window);
+        glfwPollEvents();
+        glFlush(); // Flush drawing command buffer to make drawing happen as soon as possible.
+        endTime = glfwGetTime();
+        if (endTime < deadline)
+        {
+            unsigned int sleepMicros = (unsigned int)((deadline - endTime) * 1000000);
+
+            usleep(sleepMicros);
+        }
+    }
+    printf("Avg fps: %d\n", (int)((double)fpsCnt / totSecs));
+
+    // Cleanup transitions and merges
+    for (const std::pair<const int, std::map<const int, TransitionInfo *>>& tInfoMap : GameState::transitions)
+    {
+        for (std::pair<const int, TransitionInfo*> tInfo : tInfoMap.second)
+        {
+            // if (!tInfo.second) continue;
+            delete tInfo.second;
+            tInfo.second = nullptr;
+        }
+        GameState::transitions[tInfoMap.first].clear();
+    }
+    GameState::transitions.clear();
+    for (const std::pair<const int, std::map<const int, TransitionInfo *>>& tInfoMap : GameState::merges)
+    {
+        for (std::pair<const int, TransitionInfo*> tInfo : tInfoMap.second)
+        {
+//            if (!tInfo.second) continue;
+            delete tInfo.second;
+            tInfo.second = nullptr;
+        }
+        GameState::merges[tInfoMap.first].clear();
+    }
+    GameState::merges.clear();
 }
 
 void GameRendering::displayGridBackground()
@@ -128,8 +178,8 @@ void GameRendering::displayGrid()
 {
     for (const std::pair<const int, std::map<const int, rectPosition*>>& row : tilePositions)
     {
-        for (const std::pair<const int, rectPosition*>& column : row.second) {
-//            FieldPos *fPos = GameState::fieldTileRows[row.first][column.first];
+        for (const std::pair<const int, rectPosition*>& column : row.second)
+        {
             rectPosition *rPos = column.second;
 
             glColor3f(gridColor->R, gridColor->G, gridColor->B);
@@ -141,10 +191,7 @@ void GameRendering::displayGrid()
         for (const std::pair<const int, rectPosition*>& column : row.second)
         {
             FieldPos* fPos = GameState::fieldTileRows[row.first][column.first];
-            rectPosition* rPos = column.second;
 
-//            glColor3f(gridColor->R, gridColor->G, gridColor->B);
-//            Graphics::drawFilledRoundedRect(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft);
             if (!fPos->tile) continue;
             drawTile(fPos, row.first, column.first);
         }
@@ -159,7 +206,7 @@ void GameRendering::drawTile(FieldPos* fPos, int x, int y)
     unsigned long valStrSize = valStr.size();
     float fSize = (float)fontSize;
     colorClamp* color;
-    TransitionInfo* tInfo = GameState::transitions[y][x];
+    TransitionInfo* tInfo = TransitionInfo::getTransitionInfo(y, x);
     rectPosition posTrans = rectPosition(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft, rPos->center);
 
     if (colorIt == tileColors.end()) colorIt = tileColors.find(2048);
@@ -171,26 +218,22 @@ void GameRendering::drawTile(FieldPos* fPos, int x, int y)
         rectPosition posTarget = *tilePositions[tInfo->target->y][tInfo->target->x];
         rectPosition totDistance = posTarget - posSource;
         posTrans = rectPosition(posSource.tLeft, posSource.tRight, posSource.bRight, posSource.bLeft, posSource.center);
-        printf("Source (%d, %d)\n", x, y);
 
-        posTrans.tLeft += glm::vec2(0.5, 0.5) * totDistance.tLeft;
-        posTrans.tRight += glm::vec2(0.5, 0.5) * totDistance.tRight;
-        posTrans.bRight += glm::vec2(0.5, 0.5) * totDistance.bRight;
-        posTrans.bLeft += glm::vec2(0.5, 0.5) * totDistance.bLeft;
-        posTrans.center += glm::vec2(0.5, 0.5) * totDistance.center;
-        int a = 5;
-        GameState::transitions[y].erase(x);
-        GameState::transitions.erase(y);
+        posTrans.tLeft  += glm::vec2(transitionFrac, transitionFrac) * totDistance.tLeft;
+        posTrans.tRight += glm::vec2(transitionFrac, transitionFrac) * totDistance.tRight;
+        posTrans.bRight += glm::vec2(transitionFrac, transitionFrac) * totDistance.bRight;
+        posTrans.bLeft  += glm::vec2(transitionFrac, transitionFrac) * totDistance.bLeft;
+        posTrans.center += glm::vec2(transitionFrac, transitionFrac) * totDistance.center;
     }
     Graphics::drawFilledRoundedRect(posTrans.tLeft, posTrans.tRight, posTrans.bRight, posTrans.bLeft);
     fSize *= valStrSize >= 3 ? 2.75f / (float)valStrSize : 1;
     color = fPos->tile->val <= 4 ? textColorGray : textColorWhite;
     glColor3f(color->R, color->G, color->B);
-    freetype::renderText(
+    freetype::renderText( // Memory leak
             font,
             (int)round(fSize),
-            rPos->center.x,
-            rPos->center.y,
+            posTrans.center.x,
+            posTrans.center.y,
             valStr.c_str(),
             curWidth,
             curHeight

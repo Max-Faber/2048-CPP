@@ -9,9 +9,13 @@
 
 struct Tile
 {
-    int val;
+    int val = 0;
 
-    Tile(int val) { this->val = val; }
+    explicit Tile(int val)    { this->val = val; }
+    explicit Tile(Tile* tile)
+    {
+        if (tile) this->val = tile->val;
+    }
 };
 
 struct FieldPos
@@ -26,6 +30,13 @@ struct FieldPos
         this->tile  = tile;
     }
 
+    explicit FieldPos(FieldPos* fPos)
+    {
+        this->x     = fPos->x;
+        this->y     = fPos->y;
+        this->tile  = new Tile(fPos->tile);
+    }
+
     ~FieldPos()
     {
         if (!tile) return;
@@ -34,17 +45,7 @@ struct FieldPos
     }
 };
 
-struct TransitionInfo
-{
-    FieldPos* source;
-    FieldPos* target;
-
-    TransitionInfo(FieldPos* source, FieldPos* target)
-    {
-        this->source = source;
-        this->target = target;
-    }
-};
+struct TransitionInfo;
 
 class GameState
 {
@@ -71,7 +72,7 @@ public:
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRows;
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRowsReversed;
 
-    static std::vector<TransitionInfo*> merges;
+    static std::map<const int, std::map<const int, TransitionInfo*>> merges;
     static std::map<const int, std::map<const int, TransitionInfo*>> transitions;
 
     static void initialize();
@@ -79,4 +80,44 @@ public:
     static bool mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandomTest(int val);
     static void spawnTileRandom();
+};
+
+struct TransitionInfo
+{
+    FieldPos* source;
+    FieldPos* target;
+
+    TransitionInfo(FieldPos* source, FieldPos* target)
+    {
+        this->source = source;
+        this->target = target;
+    }
+
+    explicit TransitionInfo(TransitionInfo* tInfo)
+    {
+        this->source = new FieldPos(tInfo->source);
+        this->target = new FieldPos(tInfo->target);
+    }
+
+    ~TransitionInfo()
+    {
+        if (source) { delete source; source = nullptr; }
+        if (target) { delete target; target = nullptr; }
+    }
+
+//    explicit TransitionInfo(TransitionInfo* tInfo)
+//    {
+//        this->source = tInfo->source;
+//        this->target = tInfo->target;
+//    }
+
+    static TransitionInfo* getTransitionInfo(int x, int y)
+    {
+        std::map<const int, std::map<const int, TransitionInfo*>>::iterator tInfoX;
+        std::map<const int, TransitionInfo*>::iterator tInfoY;
+
+        if ((tInfoX = GameState::transitions.find(x)) == GameState::transitions.end()) return nullptr;
+        if ((tInfoY = tInfoX->second.find(y)) == tInfoX->second.end()) return nullptr;
+        return tInfoY->second;
+    }
 };

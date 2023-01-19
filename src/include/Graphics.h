@@ -54,6 +54,18 @@ struct rectPosition
         res.center -= obj.center;
         return res;
     }
+
+    bool operator == (rectPosition const &obj) const
+    {
+        bool equal = true;
+
+        equal &= tLeft  == obj.tLeft;
+        equal &= tRight == obj.tRight;
+        equal &= bRight == obj.bRight;
+        equal &= bLeft  == obj.bLeft;
+        equal &= center == obj.center;
+        return equal;
+    }
 };
 
 class Graphics

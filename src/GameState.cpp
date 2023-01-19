@@ -6,7 +6,7 @@ std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumns;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumnsReversed;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRows;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRowsReversed;
-std::vector<TransitionInfo*> GameState::merges;
+std::map<const int, std::map<const int, TransitionInfo*>> GameState::merges;
 std::map<const int, std::map<const int, TransitionInfo*>> GameState::transitions;
 
 void GameState::initialize()
@@ -75,12 +75,12 @@ void GameState::spawnTileRandom()
     FieldPos *pos;
     int tileSetUpperRange                          = (int)emptyFieldPositions.size() - 1;
     std::uniform_int_distribution<> distTileCoords = std::uniform_int_distribution<>(0, tileSetUpperRange);
-    std::uniform_int_distribution<> distTileVal    = std::uniform_int_distribution<>(1, 2);
+    std::uniform_real_distribution<> distTileVal   = std::uniform_real_distribution<>(0, 1);
     std::set<FieldPos*>::iterator randFieldPosIt   = emptyFieldPositions.begin();
 
     std::advance(randFieldPosIt, distTileCoords(*gen));
     pos = *randFieldPosIt;
-    pos->tile = new Tile(distTileVal(*gen) * 2);
+    pos->tile = new Tile(distTileVal(*gen) < 0.9 ? 2 : 4);
     emptyFieldPositions.erase(randFieldPosIt);
 }
 
@@ -128,15 +128,15 @@ bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
         if (posLeft->tile && posRight->tile && posLeft->tile->val == posRight->tile->val)
         {
             TransitionInfo* tInfo = new TransitionInfo(
-                    new FieldPos(posRight->x, posRight->y, posRight->tile),
-                    posLeft
+                    new FieldPos(posRight),
+                    new FieldPos(posLeft)
             );
-            posLeft->tile->val *= 2;
 
-//            delete posRight->tile;
+            posLeft->tile->val *= 2;
+            delete posRight->tile;
             posRight->tile = nullptr;
-            transitions[posLeft->x][posLeft->y] = tInfo;
-            merges.push_back(tInfo);
+            transitions[posLeft->x][posLeft->y] = new TransitionInfo(tInfo);
+            merges[posLeft->x][posLeft->y] = tInfo;
             emptyFieldPositions.insert(posRight);
             tilesMerged |= true;
         }
@@ -174,7 +174,10 @@ bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap)
         tilesMoved = true;
         // pos.second == from
         // curEmptyPosition == to
-        transitions[curEmptyPosition->x][curEmptyPosition->y] = new TransitionInfo(pos.second, curEmptyPosition);
+        transitions[curEmptyPosition->x][curEmptyPosition->y] = new TransitionInfo(
+                new FieldPos(pos.second),
+                new FieldPos(curEmptyPosition)
+        );
         curEmptyPosition->tile = pos.second->tile;
         emptyFieldPositions.insert(pos.second);
         emptyFieldPositions.erase(curEmptyPosition);

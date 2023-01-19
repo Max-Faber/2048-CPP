@@ -12,7 +12,7 @@ namespace freetype
     }
 
     // Create A Display List Corresponding To The Given Character.
-    std::tuple<int, int, int> make_dlist(FT_Face face, char ch, GLuint list_base, GLuint* tex_base)
+    std::tuple<int, int> make_dlist(FT_Face face, char ch, GLuint list_base, GLuint* tex_base)
     {
         // The First Thing We Do Is Get FreeType To Render Our Character
         // Into A Bitmap.  This Actually Requires A Couple Of FreeType Commands:
@@ -109,7 +109,9 @@ namespace freetype
 
         // Finish The Display List
         glEndList();
-        return { glyph->advance.x >> 16/*face->glyph->metrics.horiAdvance >> 6*/, bitmap.rows, face->glyph->metrics.horiBearingX >> 6 };
+        width = glyph->advance.x >> 16, height = bitmap.rows;
+        FT_Done_Glyph(glyph);
+        return { width, height };
     }
 
     void font_data::init(const char* fontPath)
@@ -126,7 +128,7 @@ namespace freetype
 
     std::tuple<int, int> font_data::setFontSize(const char* text, unsigned int fontSize)
     {
-        std::tuple<int, int> charDimensions = { 0.f, 0.f };
+        std::tuple<int, int> charDimensions = { 0, 0 };
 
         this->h = (float)fontSize;
         // For Some Twisted Reason, FreeType Measures Font Size
@@ -138,7 +140,7 @@ namespace freetype
         // This Is Where We Actually Create Each Of The Fonts Display Lists.
 
         for (int i = 0; i < strlen(text); i++) {
-            std::tuple<int, int, int> t = make_dlist(face, text[i], list_base, textures);
+            std::tuple<int, int> t = make_dlist(face, text[i], list_base, textures);
             int width = 0;
 
 
@@ -211,7 +213,6 @@ namespace freetype
         pushScreenCoordinateMatrix();
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
         glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
         glEnable(GL_TEXTURE_2D);
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cfloat>
+#include <unistd.h>
 
 #include <TextRendering.h>
 #include <Graphics.h>
@@ -25,7 +26,7 @@ private:
     constexpr static const float lenTileMarHalf        = lenTileMar * .5f;
     constexpr static const float vertGridRangeOffsHalf = (gridRange / (float)vertScaleSize) * .5f;
 
-    static float tileContainerLength;
+    static float tileContainerLength, transitionFrac;
 
     static colorClamp* bgColor;
     static colorClamp* gridBgColor;

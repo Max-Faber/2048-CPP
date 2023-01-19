@@ -6,6 +6,8 @@ void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, in
 {
     bool tilesMoved;
 
+    if (redrawRequired) return;
+
     if (action != GLFW_PRESS) return;
     if (key == GLFW_KEY_ESCAPE) { glfwSetWindowShouldClose(window, GL_TRUE); return; }
     switch (key)
@@ -32,10 +34,5 @@ void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, in
     GameState::printGrid();
     if (tilesMoved) GameState::spawnTileRandom();
     GameState::printGrid();
-    redrawRequired = true;
-}
-
-void InputControl::resizeControl(GLFWwindow* window, int width, int height)
-{
     redrawRequired = true;
 }
