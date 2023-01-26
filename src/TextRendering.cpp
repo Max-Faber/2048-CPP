@@ -168,17 +168,27 @@ namespace freetype
     // A Fairly Straightforward Function That Pushes
     // A Projection Matrix That Will Make Object World
     // Coordinates Identical To Window Coordinates.
-    inline void pushScreenCoordinateMatrix()
+    inline void pushScreenCoordinateMatrix(int curWidth, int curHeight)
     {
         GLint viewport[4];
+//
+//        glPushAttrib(GL_TRANSFORM_BIT);
+//        glGetIntegerv(GL_VIEWPORT, viewport);
+//        glMatrixMode(GL_PROJECTION);
+//        glPushMatrix();
+//        glLoadIdentity();
+//        glOrtho(viewport[0], viewport[2], viewport[1], viewport[3], -1, 1);
+//        glPopAttrib();
 
-        glPushAttrib(GL_TRANSFORM_BIT);
-        glGetIntegerv(GL_VIEWPORT, viewport);
+//        glPushAttrib(GL_ENABLE_BIT);
+//        glGetIntegerv(GL_VIEWPORT, viewport);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(viewport[0], viewport[2], viewport[1], viewport[3], -1, 1);
-        glPopAttrib();
+//        glOrtho(viewport[0], viewport[2], viewport[1], viewport[3], -1, 1);
+        glOrtho(0, curWidth, 0, curHeight, -1, 1);
+        // render your text
+
     }
 
     // Pops The Projection Matrix Without Changing The Current MatrixMode.
@@ -210,7 +220,7 @@ namespace freetype
 
         std::tuple<int, int> charDimensions = ft_font->setFontSize(text, fontSize);
 //        glColor3f(0, 0, 0);
-        pushScreenCoordinateMatrix();
+        pushScreenCoordinateMatrix(curWidth, curHeight);
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
         glMatrixMode(GL_MODELVIEW);
         glEnable(GL_TEXTURE_2D);

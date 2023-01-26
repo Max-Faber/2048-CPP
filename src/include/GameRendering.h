@@ -50,7 +50,7 @@ private:
     static void displayGridBackground();
     static void displayGrid();
     static void drawNewTile();
-    static void drawTile(FieldPos* fPos, int x, int y);
+    static void drawTile(FieldPos* fPos);
 public:
     constexpr static const int initialWidth  =  600;
     constexpr static const int initialHeight =  900;

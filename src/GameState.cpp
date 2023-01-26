@@ -128,10 +128,7 @@ bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
 
         if (posLeft->tile && posRight->tile && posLeft->tile->val == posRight->tile->val)
         {
-            TransitionInfo* tInfo = new TransitionInfo(
-                    new FieldPos(posRight),
-                    new FieldPos(posLeft)
-            );
+            TransitionInfo* tInfo = new TransitionInfo(new FieldPos(posRight), new FieldPos(posLeft));
 
             posLeft->tile->val *= 2;
             delete posRight->tile;

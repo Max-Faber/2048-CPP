@@ -1,11 +1,9 @@
 #include <InputControl.h>
 
-bool InputControl::redrawRequired = true;
+bool InputControl::redrawRequired = true, InputControl::tilesMoved = false;
 
 void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    bool tilesMoved = false;
-
     if (redrawRequired) return;
     if (action != GLFW_PRESS) return;
     if (key == GLFW_KEY_ESCAPE) { glfwSetWindowShouldClose(window, GL_TRUE); return; }

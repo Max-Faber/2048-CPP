@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(src/include)
 include_directories(Libraries/include)
 include_directories(Libraries/include/FreeType)
+include_directories(Libraries/include/libtorch)
+include_directories(Libraries/include/libtorch/torch/csrc/api/include)
 
 get_filename_component(CUR_DIR "${CMAKE_CURRENT_LIST_DIR}/${MY_RELATIVE_PATH_VAR}" ABSOLUTE)
 
@@ -22,6 +24,8 @@ add_executable(
 if (APPLE)
     set(GLFW ${CUR_DIR}/Libraries/lib/MacOS/glfw/libglfw.dylib)
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.dylib)
+    set(TORCH ${CUR_DIR}/Libraries/lib/MacOS/libtorch/libtorch_cpu.dylib)
+    set(C10 ${CUR_DIR}/Libraries/lib/MacOS/libtorch/libc10.dylib)
 elseif (WIN32)
     set(LIB_DIR ${CMAKE_CURRENT_BINARY_DIR})
     set(GLFW ${CUR_DIR}/Libraries/lib/Windows/glfw/glfw3.lib)
@@ -62,5 +66,7 @@ target_link_libraries(
         2048_C__
         ${FREE_TYPE}
         ${GLFW}
+        ${TORCH}
+        ${C10}
         OpenGL::GL
 )
