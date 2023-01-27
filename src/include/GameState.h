@@ -63,6 +63,7 @@ private:
     static bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap);
 public:
     constexpr static const int gridDimension = 4;
+    static int score;
     // Key of map is the index of the corresponding column (zero-based)
     // Key of the nested map is the index of the corresponding row (zero-based)
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileColumns;

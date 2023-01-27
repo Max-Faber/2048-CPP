@@ -7,9 +7,10 @@ void Graphics::init(int argc, char** argv, int initialWidth, int initialHeight)
     glfwInit();
     window = glfwCreateWindow(initialWidth, initialHeight, "2048-CPP", nullptr, nullptr);
     glfwMakeContextCurrent(window);
-    glfwSetWindowSizeCallback(window, InputControl::resizeControl);
-    glfwSetKeyCallback(window, InputControl::keyboardControl);
-    glfwSwapInterval(0); // vsync on
+    glfwSetWindowSizeCallback(window, Keyboard::resizeControl);
+    glfwSetKeyCallback(window, Keyboard::keyboardControl);
+//    glfwSwapInterval(0); // vsync off
+    glfwSwapInterval(1); // vsync on
 }
 
 void Graphics::drawFilledRoundedRect(glm::vec2 tLeft, glm::vec2 tRight, glm::vec2 bRight, glm::vec2 bLeft, float radOffsFrac)

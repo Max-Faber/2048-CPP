@@ -17,9 +17,9 @@ add_executable(
         src/GameState.cpp
         src/Graphics.cpp
         src/CartesianProduct.cpp
-        src/InputControl.cpp
         src/TextRendering.cpp
-)
+        src/Controllers/Keyboard.cpp
+        src/Controllers/AI/DQN.cpp)
 
 if (APPLE)
     set(GLFW ${CUR_DIR}/Libraries/lib/MacOS/glfw/libglfw.dylib)

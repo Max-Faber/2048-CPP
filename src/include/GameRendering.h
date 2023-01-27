@@ -12,19 +12,27 @@
 
 class GameRendering
 {
+public:
+    constexpr static const int initialWidth  = 700;
+    constexpr static const int initialHeight = 900;
+    constexpr static const float aspectRatio = initialWidth < initialHeight ? (float)initialWidth / (float)initialHeight : (float)initialHeight / (float)initialWidth;
+    static int curWidth, curHeight;
+
+    static void show();
+    static void display();
 private:
     static const int minScreenRange = -1;
     static const int maxScreenRange =  1;
-    static const int vertScaleSize  = ABS(minScreenRange) + ABS(minScreenRange);
     static unsigned int fontSize;
 
-    constexpr static const float gridRange             = 1.1f;
+    constexpr static const float rangeWidth            = aspectRatio * 2.f;
+    constexpr static const float gridRange             = rangeWidth * .9f;
     constexpr static const float gridRangeHalf         = gridRange * .5f;
     constexpr static const float lenTileFull           = gridRange / GameState::gridDimension;
     constexpr static const float lenTotMar             = lenTileFull * .1f;
     constexpr static const float lenTileMar            = lenTileFull - (lenTotMar * ((1.0f + GameState::gridDimension) / GameState::gridDimension));
     constexpr static const float lenTileMarHalf        = lenTileMar * .5f;
-    constexpr static const float vertGridRangeOffsHalf = (gridRange / (float)vertScaleSize) * .5f;
+    constexpr static const float vertGridRangeOffsHalf = ((float)initialHeight - (float)initialWidth) / (float)initialHeight;
 
     static float tileContainerLength, transitionFrac;
 
@@ -49,14 +57,7 @@ private:
     static void drawGame();
     static void displayGridBackground();
     static void displayGrid();
+    static void drawScoreBoard();
     static void drawNewTile();
     static void drawTile(FieldPos* fPos);
-public:
-    constexpr static const int initialWidth  =  600;
-    constexpr static const int initialHeight =  900;
-    constexpr static const float aspectRatio = (float)initialWidth / (float)initialHeight;
-    static int curWidth, curHeight;
-
-    static void show();
-    static void display();
 };

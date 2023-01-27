@@ -47,10 +47,10 @@ void GameRendering::show()
     while (!glfwWindowShouldClose(Graphics::window))
     {
         glfwWaitEvents();
-        if (!InputControl::redrawRequired) continue;
+        if (!Keyboard::redrawRequired) continue;
         display();
         printf("drawCount: %d\n", drawCount+=1);
-        InputControl::redrawRequired = false;
+        Keyboard::redrawRequired = false;
     }
     glfwDestroyWindow(Graphics::window);
     glfwTerminate();
@@ -108,7 +108,7 @@ void GameRendering::drawGame()
 {
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight, totSecs = .1;
     const int limitFPS = 120, totFrames = (int)(totSecs * limitFPS);
-    double timeStepSeconds = totSecs / (double)totFrames, deadline = 0.;
+    double timeStepSeconds = totSecs / (double)totFrames, deadline = 0., curTime;
     int fpsCnt = 0;
 
     fontSize = (int)(tileLengthStartEndPixels / 15.f);
@@ -121,8 +121,14 @@ void GameRendering::drawGame()
         glClear(GL_COLOR_BUFFER_BIT);
         displayGridBackground();
         displayGrid();
+        drawScoreBoard();
         fpsCnt += 1;
+        curTime = glfwGetTime();
         deadline += timeStepSeconds;
+        if (limitFPS != -1 && curTime < deadline)
+        {
+            usleep((uint)((deadline - curTime) * 1000000));
+        }
         if (transitionFrac == 1.) break;
         glfwSwapBuffers(Graphics::window);
         glfwPollEvents();
@@ -184,16 +190,55 @@ void GameRendering::displayGrid()
     }
 }
 
+void GameRendering::drawScoreBoard()
+{
+//    glm::vec2* GameRendering::tLeftGridBG  = new glm::vec2(-gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
+//    glm::vec2* GameRendering::tRightGridBG = new glm::vec2( gridRangeHalf,  gridRangeHalf - vertGridRangeOffsHalf);
+//    glm::vec2* GameRendering::bRightGridBG = new glm::vec2( gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
+//    glm::vec2* GameRendering::bLeftGridBG  = new glm::vec2(-gridRangeHalf, -gridRangeHalf - vertGridRangeOffsHalf);
+    glm::vec2 size = glm::vec2(.3f, .2f);
+    float horOffset = gridRangeHalf - size.x;
+    float vertOffset = -gridRangeHalf + vertGridRangeOffsHalf - size.y - ((rangeWidth - gridRange) / 2.f);//-1.f + size.y + .1f;
+
+    glColor3f(gridBgColor->R, gridBgColor->G, gridBgColor->B);
+    Graphics::drawFilledRoundedRect(
+            glm::vec2(-size.x - horOffset,  size.y - vertOffset),
+            glm::vec2( size.x - horOffset,  size.y - vertOffset),
+            glm::vec2( size.x - horOffset, -size.y - vertOffset),
+            glm::vec2(-size.x - horOffset, -size.y - vertOffset)
+    );
+    glColor3f(textColorGray->R, textColorGray->G, textColorGray->B);
+    freetype::renderText(
+            font,
+            50,
+            size.x - horOffset - (size.x / 1.f),
+            size.y - vertOffset - (size.y / 2.5f),
+            "Score",
+            curWidth,
+            curHeight
+    );
+    glColor3f(textColorWhite->R, textColorWhite->G, textColorWhite->B);
+    freetype::renderText(
+            font,
+            60,
+            size.x - horOffset - size.x,
+            size.y - vertOffset - size.y,
+            std::to_string(GameState::score).c_str(),
+            curWidth,
+            curHeight
+    );
+}
+
 void GameRendering::drawNewTile()
 {
     FieldPos* fPos;
 
-    if (!InputControl::tilesMoved) return;
+    if (!Keyboard::tilesMoved) return;
     fPos = GameState::spawnTileRandom();
     GameState::printGrid();
     drawTile(fPos);
     glfwSwapBuffers(Graphics::window);
-    InputControl::tilesMoved = false;
+    Keyboard::tilesMoved = false;
 }
 
 void GameRendering::drawTile(FieldPos* fPos)

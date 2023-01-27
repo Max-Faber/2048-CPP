@@ -1,9 +1,12 @@
 #include <main.h>
-#include <torch/torch.h>
+//#include <torch/torch.h>
 
 int main(int argc, char** argv)
 {
-    // auto x = torch::randn({2, 2}).to(torch::kMPS);
+//    torch::TensorOptions tensorOptions = torch::TensorOptions().device(torch::kMPS);
+//    torch::Tensor x = torch::randn({2, 2}, tensorOptions);
+
+//    std::cout << x;
 
     Graphics::init(argc, argv, GameRendering::initialWidth, GameRendering::initialHeight);
     GameState::initialize();

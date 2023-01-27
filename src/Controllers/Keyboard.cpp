@@ -1,8 +1,8 @@
-#include <InputControl.h>
+#include <Controllers/Keyboard.h>
 
-bool InputControl::redrawRequired = true, InputControl::tilesMoved = false;
+bool Keyboard::redrawRequired = true, Keyboard::tilesMoved = false;
 
-void InputControl::keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Keyboard::keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (redrawRequired) return;
     if (action != GLFW_PRESS) return;

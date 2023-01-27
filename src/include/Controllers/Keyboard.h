@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdio>
-#include <GameState.h>
-#include <GLFW/glfw3.h>
+#include "GameState.h"
+#include "GLFW/glfw3.h"
 
-class InputControl
+class Keyboard
 {
 public:
     static bool redrawRequired, tilesMoved;
