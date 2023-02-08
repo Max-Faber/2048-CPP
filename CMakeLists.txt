@@ -1,27 +1,30 @@
 cmake_minimum_required(VERSION 3.21.1)
-project(2048_C__)
+project(2048_CPP)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(src/include)
 include_directories(Libraries/include)
 include_directories(Libraries/include/FreeType)
-include_directories(Libraries/include/libtorch)
-include_directories(Libraries/include/libtorch/torch/csrc/api/include)
 
 get_filename_component(CUR_DIR "${CMAKE_CURRENT_LIST_DIR}/${MY_RELATIVE_PATH_VAR}" ABSOLUTE)
 
-add_executable(
-        2048_C__
-        src/main.cpp
-        src/GameRendering.cpp
-        src/GameState.cpp
-        src/Graphics.cpp
-        src/CartesianProduct.cpp
-        src/TextRendering.cpp
-        src/Controllers/Keyboard.cpp
-        src/Controllers/AI/DQN.cpp)
-
+set(SRC_FILES
+        ${CUR_DIR}/src/GameRendering.cpp
+        ${CUR_DIR}/src/GameState.cpp
+        ${CUR_DIR}/src/Graphics.cpp
+        ${CUR_DIR}/src/CartesianProduct.cpp
+        ${CUR_DIR}/src/TextRendering.cpp
+        ${CUR_DIR}/src/Controllers/Keyboard.cpp
+        ${CUR_DIR}/src/Controllers/AI/DQN.cpp)
+if (LIB_SHARED)
+    add_library(2048_CPP SHARED ${SRC_FILES})
+else()
+    add_executable(2048_CPP ${CUR_DIR}/src/main.cpp ${SRC_FILES})
+endif()
 if (APPLE)
+    include_directories(Libraries/include/libtorch)
+    include_directories(Libraries/include/libtorch/torch/csrc/api/include)
+
     set(GLFW ${CUR_DIR}/Libraries/lib/MacOS/glfw/libglfw.dylib)
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.dylib)
     set(TORCH ${CUR_DIR}/Libraries/lib/MacOS/libtorch/libtorch_cpu.dylib)
@@ -31,8 +34,30 @@ elseif (WIN32)
     set(GLFW ${CUR_DIR}/Libraries/lib/Windows/glfw/glfw3.lib)
 
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.lib)
-    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.pdb)
     list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.dll)
+
+    #    set(TORCH ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.lib)
+    #    set(C10 ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.lib)
+
+    set(CMAKE_PREFIX_PATH "C:\\Users\\Max\\Downloads\\libtorch-win-shared-with-deps-1.13.1+cpu\\libtorch")
+    find_package(Torch REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
+    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    add_custom_command(TARGET 2048_CPP
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${TORCH_DLLS}
+            $<TARGET_FILE_DIR:2048_CPP>
+            )
+
+    #    set(TOR ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.lib)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.lib)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.dll)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.lib)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.dll)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.lib)
+    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.dll)
 endif ()
 
 add_custom_command(
@@ -63,12 +88,11 @@ endforeach ()
 find_package(OpenGL REQUIRED)
 
 target_link_libraries(
-        2048_C__
+        2048_CPP
         ${FREE_TYPE}
         ${GLFW}
         ${TORCH}
         ${C10}
+        ${TORCH_LIBRARIES}
         OpenGL::GL
 )
-
-
