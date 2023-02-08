@@ -1,13 +1,16 @@
 #pragma once
 
 #include <cfloat>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <TextRendering.h>
 #include <Graphics.h>
 #include <GameState.h>
 
-#define ABS(N) ((N<0) ? (-N) : (N))
 #define BASE_NUMBER 2
 
 class GameRendering
@@ -23,16 +26,15 @@ public:
 private:
     static const int minScreenRange = -1;
     static const int maxScreenRange =  1;
-    static unsigned int fontSize;
 
-    constexpr static const float rangeWidth            = aspectRatio * 2.f;
-    constexpr static const float gridRange             = rangeWidth * .9f;
-    constexpr static const float gridRangeHalf         = gridRange * .5f;
-    constexpr static const float lenTileFull           = gridRange / GameState::gridDimension;
-    constexpr static const float lenTotMar             = lenTileFull * .1f;
-    constexpr static const float lenTileMar            = lenTileFull - (lenTotMar * ((1.0f + GameState::gridDimension) / GameState::gridDimension));
-    constexpr static const float lenTileMarHalf        = lenTileMar * .5f;
-    constexpr static const float vertGridRangeOffsHalf = ((float)initialHeight - (float)initialWidth) / (float)initialHeight;
+    constexpr static const float rangeWidth     = aspectRatio * 2.f;
+    constexpr static const float gridRange      = rangeWidth * .9f;
+    constexpr static const float gridRangeHalf  = gridRange * .5f;
+    constexpr static const float lenTileFull    = gridRange / GameState::gridDimension;
+    constexpr static const float lenTotMar      = lenTileFull * .1f;
+    constexpr static const float lenTileMar     = lenTileFull - (lenTotMar * ((1.0f + GameState::gridDimension) / GameState::gridDimension));
+    constexpr static const float lenTileMarHalf = lenTileMar * .5f;
+    constexpr static const float gridMargin     = ((float)initialHeight - (float)initialWidth) / (float)initialHeight;
 
     static float tileContainerLength, transitionFrac;
 
@@ -50,7 +52,7 @@ private:
 
     static std::map<const int, std::map<const int, rectPosition*>> tilePositions;
 
-    static freetype::font_data* font;
+    static fontData* font;
 
     static void init();
     static void calcTilePositions();

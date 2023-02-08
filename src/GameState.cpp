@@ -6,9 +6,9 @@ std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumns;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumnsReversed;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRows;
 std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRowsReversed;
-std::map<const int, std::map<const int, TransitionInfo*>> GameState::merges;
 std::map<const int, std::map<const int, TransitionInfo*>> GameState::transitions;
 int GameState::score = 0;
+int GameState::fieldPosCreated = 0, GameState::fieldPosDestroyed = 0;
 
 void GameState::initialize()
 {
@@ -136,8 +136,7 @@ bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
             printf("Score: %d\n", score);
             delete posRight->tile;
             posRight->tile = nullptr;
-            transitions[posLeft->x][posLeft->y] = new TransitionInfo(tInfo);
-            merges[posLeft->x][posLeft->y] = tInfo;
+            transitions[posLeft->x][posLeft->y] = tInfo;//new TransitionInfo(tInfo);
             emptyFieldPositions.insert(posRight);
             tilesMerged |= true;
         }

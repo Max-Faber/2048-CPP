@@ -6,8 +6,11 @@ void Graphics::init(int argc, char** argv, int initialWidth, int initialHeight)
 {
     glfwInit();
     window = glfwCreateWindow(initialWidth, initialHeight, "2048-CPP", nullptr, nullptr);
+    printf("Window created: %s", window == nullptr ? "False" : "True");
     glfwMakeContextCurrent(window);
+    printf("Before\n");
     glfwSetWindowSizeCallback(window, Keyboard::resizeControl);
+
     glfwSetKeyCallback(window, Keyboard::keyboardControl);
 //    glfwSwapInterval(0); // vsync off
     glfwSwapInterval(1); // vsync on

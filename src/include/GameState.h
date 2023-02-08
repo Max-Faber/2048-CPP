@@ -18,34 +18,9 @@ struct Tile
     }
 };
 
-struct FieldPos
-{
-    int x, y;
-    Tile *tile;
-
-    FieldPos(int x, int y, Tile *tile = nullptr)
-    {
-        this->x     = x;
-        this->y     = y;
-        this->tile  = tile;
-    }
-
-    explicit FieldPos(FieldPos* fPos)
-    {
-        this->x     = fPos->x;
-        this->y     = fPos->y;
-        this->tile  = new Tile(fPos->tile);
-    }
-
-    ~FieldPos()
-    {
-        if (!tile) return;
-        delete tile;
-        tile = nullptr;
-    }
-};
 
 struct TransitionInfo;
+struct FieldPos;
 
 class GameState
 {
@@ -62,6 +37,7 @@ private:
     static bool mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap);
     static bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap);
 public:
+    static int fieldPosCreated, fieldPosDestroyed;
     constexpr static const int gridDimension = 4;
     static int score;
     // Key of map is the index of the corresponding column (zero-based)
@@ -73,7 +49,7 @@ public:
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRows;
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRowsReversed;
 
-    static std::map<const int, std::map<const int, TransitionInfo*>> merges;
+//    static std::map<const int, std::map<const int, TransitionInfo*>> merges;
     static std::map<const int, std::map<const int, TransitionInfo*>> transitions;
 
     static void initialize();
@@ -81,6 +57,36 @@ public:
     static bool mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandomTest(int val);
     static FieldPos* spawnTileRandom();
+};
+
+struct FieldPos
+{
+    int x, y;
+    Tile *tile;
+
+    FieldPos(int x, int y, Tile *tile = nullptr)
+    {
+        this->x     = x;
+        this->y     = y;
+        this->tile  = tile;
+        printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
+    }
+
+    explicit FieldPos(FieldPos* fPos)
+    {
+        this->x     = fPos->x;
+        this->y     = fPos->y;
+        this->tile  = new Tile(fPos->tile);
+        printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
+    }
+
+    ~FieldPos()
+    {
+        if (!tile) return;
+        delete tile;
+        tile = nullptr;
+        printf("GameState::fieldPosDestroyed: %d\n", GameState::fieldPosDestroyed += 1);
+    }
 };
 
 struct TransitionInfo
@@ -106,12 +112,6 @@ struct TransitionInfo
         if (target) { delete target; target = nullptr; }
     }
 
-//    explicit TransitionInfo(TransitionInfo* tInfo)
-//    {
-//        this->source = tInfo->source;
-//        this->target = tInfo->target;
-//    }
-
     static TransitionInfo* getTransitionInfo(int x, int y)
     {
         std::map<const int, std::map<const int, TransitionInfo*>>::iterator tInfoX;
@@ -121,4 +121,21 @@ struct TransitionInfo
         if ((tInfoY = tInfoX->second.find(y)) == tInfoX->second.end()) return nullptr;
         return tInfoY->second;
     }
+
+    static void cleanTransitionInfo()
+    {
+        for (const std::pair<const int, std::map<const int, TransitionInfo *>>& tInfoMap : GameState::transitions)
+        {
+            for (std::pair<const int, TransitionInfo*> tInfo : tInfoMap.second)
+            {
+                if (!tInfo.second) continue;
+                delete tInfo.second;
+                tInfo.second = nullptr;
+            }
+            GameState::transitions[tInfoMap.first].clear();
+        }
+        GameState::transitions.clear();
+    }
 };
+
+

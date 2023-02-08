@@ -55,16 +55,26 @@ struct rectPosition
         return res;
     }
 
-    bool operator == (rectPosition const &obj) const
+    rectPosition operator += (rectPosition const &obj)
     {
-        bool equal = true;
+        this->tLeft  += obj.tLeft;
+        this->tRight += obj.tRight;
+        this->bRight += obj.bRight;
+        this->bLeft  += obj.bLeft;
+        this->center += obj.center;
+        return *this;
+    }
 
-        equal &= tLeft  == obj.tLeft;
-        equal &= tRight == obj.tRight;
-        equal &= bRight == obj.bRight;
-        equal &= bLeft  == obj.bLeft;
-        equal &= center == obj.center;
-        return equal;
+    rectPosition operator * (glm::vec2 const &obj) const
+    {
+        rectPosition res(tLeft, tRight, bRight, bLeft, center);
+
+        res.tLeft  *= obj;
+        res.tRight *= obj;
+        res.bRight *= obj;
+        res.bLeft  *= obj;
+        res.center *= obj;
+        return res;
     }
 };
 
