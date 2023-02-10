@@ -27,8 +27,6 @@ if (APPLE)
 
     set(GLFW ${CUR_DIR}/Libraries/lib/MacOS/glfw/libglfw.dylib)
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/MacOS/FreeType/libfreetype.dylib)
-    set(TORCH ${CUR_DIR}/Libraries/lib/MacOS/libtorch/libtorch_cpu.dylib)
-    set(C10 ${CUR_DIR}/Libraries/lib/MacOS/libtorch/libc10.dylib)
 elseif (WIN32)
     set(LIB_DIR ${CMAKE_CURRENT_BINARY_DIR})
     set(GLFW ${CUR_DIR}/Libraries/lib/Windows/glfw/glfw3.lib)
@@ -36,28 +34,17 @@ elseif (WIN32)
     set(FREE_TYPE ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.lib)
     list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/FreeType/freetype.dll)
 
-    #    set(TORCH ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.lib)
-    #    set(C10 ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.lib)
-
-    set(CMAKE_PREFIX_PATH "C:\\Users\\Max\\Downloads\\libtorch-win-shared-with-deps-1.13.1+cpu\\libtorch")
-    find_package(Torch REQUIRED)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-
-    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-    add_custom_command(TARGET 2048_CPP
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${TORCH_DLLS}
-            $<TARGET_FILE_DIR:2048_CPP>
-            )
-
-    #    set(TOR ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.lib)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.lib)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch_cpu.dll)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.lib)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/c10.dll)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.lib)
-    #    list(APPEND LIBS_TO_COPY ${CUR_DIR}/Libraries/lib/Windows/libtorch/torch.dll)
+#    set(CMAKE_PREFIX_PATH "C:\\Users\\Max\\Downloads\\libtorch-win-shared-with-deps-1.13.1+cpu\\libtorch")
+#    find_package(Torch REQUIRED)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+#
+#    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+#    add_custom_command(TARGET 2048_CPP
+#            POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${TORCH_DLLS}
+#            $<TARGET_FILE_DIR:2048_CPP>
+#            )
 endif ()
 
 add_custom_command(
@@ -91,8 +78,5 @@ target_link_libraries(
         2048_CPP
         ${FREE_TYPE}
         ${GLFW}
-        ${TORCH}
-        ${C10}
-        ${TORCH_LIBRARIES}
         OpenGL::GL
 )
