@@ -18,10 +18,10 @@ struct Tile
     }
 };
 
+enum Move { up, down, left, right };
 
 struct TransitionInfo;
 struct FieldPos;
-
 class GameState
 {
 private:
@@ -34,7 +34,7 @@ private:
     static void initializeRandom();
     static void initializeTileFields();
     static void initializeGame();
-    static bool mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap);
+    static std::pair<bool, int> mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap);
     static bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap);
 public:
     static int fieldPosCreated, fieldPosDestroyed;
@@ -49,14 +49,18 @@ public:
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRows;
     static std::map<const int, std::map<const int, FieldPos*>> fieldTileRowsReversed;
 
-//    static std::map<const int, std::map<const int, TransitionInfo*>> merges;
     static std::map<const int, std::map<const int, TransitionInfo*>> transitions;
 
     static void initialize();
+    static void reset();
     static void printGrid();
-    static bool mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
+    static std::pair<bool, int> makeMove(Move move);
+    static std::pair<bool, int> mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim);
     static void spawnTileRandomTest(int val);
     static FieldPos* spawnTileRandom();
+    static std::vector<int> getStateFlattened();
+    static bool isTerminal();
+    static int getTileValue(int row, int column);
 };
 
 struct FieldPos
@@ -69,7 +73,7 @@ struct FieldPos
         this->x     = x;
         this->y     = y;
         this->tile  = tile;
-        printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
+        // printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
     }
 
     explicit FieldPos(FieldPos* fPos)
@@ -77,7 +81,7 @@ struct FieldPos
         this->x     = fPos->x;
         this->y     = fPos->y;
         this->tile  = new Tile(fPos->tile);
-        printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
+        // printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
     }
 
     ~FieldPos()
@@ -85,7 +89,7 @@ struct FieldPos
         if (!tile) return;
         delete tile;
         tile = nullptr;
-        printf("GameState::fieldPosDestroyed: %d\n", GameState::fieldPosDestroyed += 1);
+        // printf("GameState::fieldPosDestroyed: %d\n", GameState::fieldPosDestroyed += 1);
     }
 };
 

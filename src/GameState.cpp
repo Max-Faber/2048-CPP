@@ -17,6 +17,23 @@ void GameState::initialize()
     initializeGame();
 }
 
+void GameState::reset()
+{
+    for (const std::pair<const int, std::map<const int, FieldPos*>>& fieldTileRow : fieldTileColumns)
+    {
+        for (std::pair<const int, FieldPos *> fieldTile: fieldTileRow.second)
+        {
+            if (!fieldTile.second->tile) continue;
+            delete fieldTile.second->tile;
+            fieldTile.second->tile = nullptr;
+            emptyFieldPositions.insert(fieldTile.second);
+        }
+    }
+    TransitionInfo::cleanTransitionInfo();
+    initializeGame();
+    score = 0;
+}
+
 void GameState::initializeRandom()
 {
     std::random_device rd; // Will be used to obtain a seed for the random number engine
@@ -100,24 +117,53 @@ void GameState::printGrid()
     printf("\n");
 }
 
-bool GameState::mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim)
+std::pair<bool, int> GameState::makeMove(Move move)
 {
-    bool tilesMoved = false;
+    std::pair<bool, int> mergeResult;
 
-    if (gridDimension < 2) return tilesMoved;
-    for (std::pair<const int, std::map<const int, FieldPos*>> fieldTilesOneDim : fieldTilesTwoDim)
+    switch (move)
     {
-        tilesMoved |= mergeTileMap(fieldTilesOneDim.second);
-        tilesMoved |= fillTileGaps(fieldTilesOneDim.second);
+        case up:
+            mergeResult = mergeTiles(GameState::fieldTileRows);
+            break;
+        case right:
+            mergeResult = mergeTiles(GameState::fieldTileColumnsReversed);
+            break;
+        case down:
+            mergeResult = mergeTiles(GameState::fieldTileRowsReversed);
+            break;
+        case left:
+            mergeResult = mergeTiles(GameState::fieldTileColumns);
+            break;
+        default:
+            break;
     }
-    return tilesMoved;
+    return mergeResult;
 }
 
-bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
+std::pair<bool, int> GameState::mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim)
+{
+    int mergeSum = 0;
+    bool tilesMoved = false;
+
+    if (gridDimension < 2) return std::pair<bool, int>(tilesMoved, mergeSum);
+    for (std::pair<const int, std::map<const int, FieldPos*>> fieldTilesOneDim : fieldTilesTwoDim)
+    {
+        std::pair<bool, int> mergeResult = mergeTileMap(fieldTilesOneDim.second);
+
+        tilesMoved |= mergeResult.first;
+        mergeSum += mergeResult.second;
+        tilesMoved |= fillTileGaps(fieldTilesOneDim.second);
+    }
+    return std::pair<bool, int>(tilesMoved, mergeSum);
+}
+
+std::pair<bool, int> GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
 {
     std::map<const int, FieldPos*>::iterator itPosLeft, itPosRight;
     std::map<const int, FieldPos*>::iterator fieldTilesMapEnd;
     bool tilesMerged = false;
+    int mergeSum = 0;
 
     itPosLeft        = fieldTilesMap.begin();
     itPosRight       = std::next(fieldTilesMap.begin());
@@ -133,12 +179,12 @@ bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
 
             posLeft->tile->val *= 2;
             score += posLeft->tile->val;
-            printf("Score: %d\n", score);
             delete posRight->tile;
             posRight->tile = nullptr;
             transitions[posLeft->x][posLeft->y] = tInfo;//new TransitionInfo(tInfo);
             emptyFieldPositions.insert(posRight);
             tilesMerged |= true;
+            mergeSum += posLeft->tile->val;
         }
         else if (posLeft->tile && !posRight->tile)
         {
@@ -149,7 +195,7 @@ bool GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
         itPosLeft++;
         itPosRight++;
     } while (itPosRight != fieldTilesMapEnd);
-    return tilesMerged;
+    return std::pair<bool, int>(tilesMerged, mergeSum);
 }
 
 bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap)
@@ -186,4 +232,52 @@ bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap)
         curEmptyPosition = nullptr;
     }
     return tilesMoved;
+}
+
+std::vector<int> GameState::getStateFlattened()
+{
+    std::vector<int> stateFlattened;
+
+    for (const std::pair<const int, std::map<const int, FieldPos*>>& fieldTileRow : fieldTileColumns)
+    {
+        for (std::pair<const int, FieldPos*> fieldTile : fieldTileRow.second)
+        {
+            int val = fieldTile.second->tile ? fieldTile.second->tile->val : 1;
+
+            stateFlattened.push_back(val);
+        }
+    }
+    return stateFlattened;
+}
+
+bool GameState::isTerminal()
+{
+    for (int row = 0; row < gridDimension; row++)
+    {
+        for (int column = 0; column < gridDimension; column++)
+        {
+            if (!fieldTileRows[row][column]->tile) return false;
+        }
+    }
+    for (int row = 0; row < gridDimension; row++)
+    {
+        for (int column = 0; column < gridDimension; column++)
+        {
+            if (row > 0 && fieldTileRows[row][column]->tile->val == fieldTileRows[row - 1][column]->tile->val)
+                return false;
+            if (column > 0 && fieldTileRows[row][column]->tile->val == fieldTileRows[row][column - 1]->tile->val)
+                return false;
+            if (row < gridDimension - 1 && fieldTileRows[row][column]->tile->val == fieldTileRows[row + 1][column]->tile->val)
+                return false;
+            if (column < gridDimension - 1 && fieldTileRows[row][column]->tile->val == fieldTileRows[row][column + 1]->tile->val)
+                return false;
+        }
+    }
+    return true;
+}
+
+int GameState::getTileValue(int row, int column)
+{
+    if (!fieldTileRows[row][column]->tile) return 1;
+    return fieldTileRows[row][column]->tile->val;
 }

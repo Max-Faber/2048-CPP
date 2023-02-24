@@ -14,10 +14,10 @@ set(SRC_FILES
         ${CUR_DIR}/src/Graphics.cpp
         ${CUR_DIR}/src/CartesianProduct.cpp
         ${CUR_DIR}/src/TextRendering.cpp
-        ${CUR_DIR}/src/Controllers/Keyboard.cpp
-        ${CUR_DIR}/src/Controllers/AI/DQN.cpp)
+        ${CUR_DIR}/src/Controllers/Keyboard.cpp)
 if (LIB_SHARED)
     add_library(2048_CPP SHARED ${SRC_FILES})
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
 else()
     add_executable(2048_CPP ${CUR_DIR}/src/main.cpp ${SRC_FILES})
 endif()

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <glm/vec2.hpp>
 #include <GLFW/glfw3.h>
-#include "Controllers/Keyboard.h"
+#include <Controllers/Keyboard.h>
 
 #ifdef _WIN32
     #include <corecrt_math_defines.h>

@@ -44,6 +44,7 @@ void GameRendering::show()
 
     init();
     glfwSetWindowAspectRatio(Graphics::window, initialWidth, initialHeight);
+    return;
     while (!glfwWindowShouldClose(Graphics::window))
     {
         glfwWaitEvents();
@@ -107,7 +108,7 @@ void GameRendering::display()
 void GameRendering::drawGame()
 {
     float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight, totSecs = .1;
-    const int limitFPS = 120, totFrames = (int)(totSecs * limitFPS);
+    const int limitFPS = 60000, totFrames = (int)(totSecs * limitFPS);
     double timeStepSeconds = totSecs / (double)totFrames, deadline = 0., curTime;
     int fpsCnt = 0;
 
@@ -139,7 +140,7 @@ void GameRendering::drawGame()
         glfwSwapBuffers(Graphics::window);
         glfwPollEvents();
     }
-    printf("Avg fps: %d\n", (int)ceil( ((double)fpsCnt / glfwGetTime()) ) );
+    // printf("Avg fps: %d\n", (int)ceil( ((double)fpsCnt / glfwGetTime()) ) );
     drawNewTile();
     // Cleanup transitions and merges
     TransitionInfo::cleanTransitionInfo();
