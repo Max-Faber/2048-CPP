@@ -5,11 +5,11 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 #endif
 
-colorClamp* GameRendering::bgColor          = new colorClamp(220, 220, 220);
-colorClamp* GameRendering::gridBgColor      = new colorClamp(178, 168, 158);
-colorClamp* GameRendering::gridColor        = new colorClamp(204, 192, 180);
-colorClamp* GameRendering::textColorGray    = new colorClamp(110, 100,  92);
-colorClamp* GameRendering::textColorWhite   = new colorClamp(255, 255, 255);
+colorClamp *GameRendering::bgColor          = new colorClamp(220, 220, 220);
+colorClamp *GameRendering::gridBgColor      = new colorClamp(178, 168, 158);
+colorClamp *GameRendering::gridColor        = new colorClamp(204, 192, 180);
+colorClamp *GameRendering::textColorGray    = new colorClamp(110, 100,  92);
+colorClamp *GameRendering::textColorWhite   = new colorClamp(255, 255, 255);
 std::map<const unsigned int, colorClamp*> GameRendering::tileColors = {
         { pow(BASE_NUMBER,  1), new colorClamp(235, 224, 212) }, //    2
         { pow(BASE_NUMBER,  2), new colorClamp(235, 220, 192) }, //    4
@@ -42,6 +42,8 @@ void GameRendering::show()
 {
     int drawCount = 0;
 
+    printf("Show\n");
+
     init();
     glfwSetWindowAspectRatio(Graphics::window, initialWidth, initialHeight);
     return;
@@ -49,9 +51,9 @@ void GameRendering::show()
     {
         glfwWaitEvents();
         if (!Keyboard::redrawRequired) continue;
+        Keyboard::redrawRequired = false;
         display();
         printf("drawCount: %d\n", drawCount+=1);
-        Keyboard::redrawRequired = false;
     }
     glfwDestroyWindow(Graphics::window);
     glfwTerminate();
@@ -97,17 +99,25 @@ void GameRendering::display()
 {
     float curAspectRatio;
 
+    if (Keyboard::pauseRendering)
+    {
+        glfwPollEvents();
+        if (Keyboard::tilesMoved) GameState::gameState->spawnTileRandom();
+        GameState::gameState->cleanTransitionInfo();
+        return;
+    }
     glfwGetWindowSize(Graphics::window, &curWidth, &curHeight);
     curAspectRatio = (float)(curWidth) / (float)(curHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-curAspectRatio, curAspectRatio, minScreenRange, maxScreenRange, -1, 1);
     drawGame();
+    GameState::gameState->cleanTransitionInfo();
 }
 
 void GameRendering::drawGame()
 {
-    float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight, totSecs = .1;
+    float tileLengthStartEndPixels = tileContainerLength * (float)GameRendering::curHeight, totSecs = .05;
     const int limitFPS = 60000, totFrames = (int)(totSecs * limitFPS);
     double timeStepSeconds = totSecs / (double)totFrames, deadline = 0., curTime;
     int fpsCnt = 0;
@@ -143,7 +153,7 @@ void GameRendering::drawGame()
     // printf("Avg fps: %d\n", (int)ceil( ((double)fpsCnt / glfwGetTime()) ) );
     drawNewTile();
     // Cleanup transitions and merges
-    TransitionInfo::cleanTransitionInfo();
+    GameState::gameState->cleanTransitionInfo();
 //    for (const std::pair<const int, std::map<const int, TransitionInfo *>>& tInfoMap : GameState::transitions)
 //    {
 //        for (std::pair<const int, TransitionInfo*> tInfo : tInfoMap.second)
@@ -190,7 +200,7 @@ void GameRendering::displayGrid()
     {
         for (const std::pair<const int, rectPosition*>& column : row.second)
         {
-            FieldPos* fPos = GameState::fieldTileRows[row.first][column.first];
+            FieldPos* fPos = GameState::gameState->fieldTileRows[row.first][column.first];
 
             if (!fPos->tile) continue;
             drawTile(fPos);
@@ -225,7 +235,7 @@ void GameRendering::drawScoreBoard()
             font,
             center.x - horOffset - center.x,
             center.y + vertOffset - center.y,
-            std::to_string(GameState::score),
+            std::to_string(GameState::gameState->score),
             curWidth,
             curHeight
     );
@@ -236,19 +246,19 @@ void GameRendering::drawNewTile()
     FieldPos* fPos;
 
     if (!Keyboard::tilesMoved) return;
-    fPos = GameState::spawnTileRandom();
-    GameState::printGrid();
+    fPos = GameState::gameState->spawnTileRandom();
+    // GameState::printGrid();
     drawTile(fPos);
     glfwSwapBuffers(Graphics::window);
     Keyboard::tilesMoved = false;
 }
 
-void GameRendering::drawTile(FieldPos* fPos)
+void GameRendering::drawTile(FieldPos *fPos)
 {
     std::map<const unsigned int, colorClamp*>::iterator colorIt = tileColors.find(fPos->tile->val);
-    rectPosition* rPos = tilePositions[fPos->y][fPos->x];
-    colorClamp* color;
-    TransitionInfo* tInfo = TransitionInfo::getTransitionInfo(fPos->x, fPos->y);
+    rectPosition  *rPos = tilePositions[fPos->y][fPos->x];
+    colorClamp *color;
+    TransitionInfo *tInfo = GameState::gameState->getTransitionInfo(fPos->x, fPos->y);
     rectPosition posTrans = rectPosition(rPos->tLeft, rPos->tRight, rPos->bRight, rPos->bLeft, rPos->center);
 
     if (colorIt == tileColors.end()) colorIt = tileColors.find(2048);
@@ -262,6 +272,7 @@ void GameRendering::drawTile(FieldPos* fPos)
         posTrans = rectPosition(posSource.tLeft, posSource.tRight, posSource.bRight, posSource.bLeft, posSource.center);
 
         posTrans += totDistance * glm::vec2(transitionFrac, transitionFrac);
+        // delete tInfo; tInfo = nullptr; GameState::gameState->transitions[fPos->x][fPos->y] = nullptr;
     }
     Graphics::drawFilledRoundedRect(posTrans.tLeft, posTrans.tRight, posTrans.bRight, posTrans.bLeft);
     color = fPos->tile->val <= 4 ? textColorGray : textColorWhite;

@@ -1,14 +1,35 @@
 #include <GameState.h>
 
 std::mt19937* GameState::gen;
-std::set<FieldPos*> GameState::emptyFieldPositions;
-std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumns;
-std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileColumnsReversed;
-std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRows;
-std::map<const int, std::map<const int, FieldPos*>> GameState::fieldTileRowsReversed;
-std::map<const int, std::map<const int, TransitionInfo*>> GameState::transitions;
-int GameState::score = 0;
+GameState *GameState::gameState;
 int GameState::fieldPosCreated = 0, GameState::fieldPosDestroyed = 0;
+
+GameState::GameState(GameState *gameState)
+{
+    for (int x = 0; x < GameState::gridDimension; x++)
+    {
+        for (int y = 0; y < GameState::gridDimension; y++)
+        {
+            FieldPos *fPosCopy = new FieldPos(gameState->fieldTileColumns[x][y]);
+
+            fieldTileColumns[x][y] = fPosCopy;
+            fieldTileColumnsReversed[x][gridDimension - y - 1] = fPosCopy;
+            fieldTileRows[y][x] = fPosCopy;
+            fieldTileRowsReversed[y][gridDimension - x - 1] = fPosCopy;
+            if (!fPosCopy->tile) emptyFieldPositions.insert(fPosCopy);
+        }
+    }
+//    for (const std::pair<const int, std::map<const int, TransitionInfo*>>& tInfoMap : gameState->transitions)
+//    {
+//        for (std::pair<const int, TransitionInfo *> tInfo: tInfoMap.second)
+//        {
+//            if (!tInfo.second) continue;
+//            transitions[tInfoMap.first][tInfo.first] = new TransitionInfo(tInfo.second);
+//        }
+//    }
+    // latestTile = new Tile(gameState->latestTile);
+    score = gameState->score;
+}
 
 void GameState::initialize()
 {
@@ -29,7 +50,7 @@ void GameState::reset()
             emptyFieldPositions.insert(fieldTile.second);
         }
     }
-    TransitionInfo::cleanTransitionInfo();
+    cleanTransitionInfo();
     initializeGame();
     score = 0;
 }
@@ -51,7 +72,7 @@ void GameState::initializeTileFields()
     {
         int x = std::any_cast<int>(vals[0]);
         int y = std::any_cast<int>(vals[1]);
-        FieldPos* pos = new FieldPos(x, y);
+        FieldPos *pos = new FieldPos(x, y);
 
         fieldTileColumns[x][y] = pos;
         fieldTileColumnsReversed[x][gridDimension - y - 1] = pos;
@@ -117,23 +138,23 @@ void GameState::printGrid()
     printf("\n");
 }
 
-std::pair<bool, int> GameState::makeMove(Move move)
+std::pair<bool, int> GameState::makeMove(Move move, bool trackTransitions)
 {
     std::pair<bool, int> mergeResult;
 
     switch (move)
     {
         case up:
-            mergeResult = mergeTiles(GameState::fieldTileRows);
+            mergeResult = mergeTiles(GameState::fieldTileRows, trackTransitions);
             break;
         case right:
-            mergeResult = mergeTiles(GameState::fieldTileColumnsReversed);
+            mergeResult = mergeTiles(GameState::fieldTileColumnsReversed, trackTransitions);
             break;
         case down:
-            mergeResult = mergeTiles(GameState::fieldTileRowsReversed);
+            mergeResult = mergeTiles(GameState::fieldTileRowsReversed, trackTransitions);
             break;
         case left:
-            mergeResult = mergeTiles(GameState::fieldTileColumns);
+            mergeResult = mergeTiles(GameState::fieldTileColumns, trackTransitions);
             break;
         default:
             break;
@@ -141,7 +162,7 @@ std::pair<bool, int> GameState::makeMove(Move move)
     return mergeResult;
 }
 
-std::pair<bool, int> GameState::mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim)
+std::pair<bool, int> GameState::mergeTiles(const std::map<const int, std::map<const int, FieldPos*>>& fieldTilesTwoDim, bool trackTransitions)
 {
     int mergeSum = 0;
     bool tilesMoved = false;
@@ -149,16 +170,16 @@ std::pair<bool, int> GameState::mergeTiles(const std::map<const int, std::map<co
     if (gridDimension < 2) return std::pair<bool, int>(tilesMoved, mergeSum);
     for (std::pair<const int, std::map<const int, FieldPos*>> fieldTilesOneDim : fieldTilesTwoDim)
     {
-        std::pair<bool, int> mergeResult = mergeTileMap(fieldTilesOneDim.second);
+        std::pair<bool, int> mergeResult = mergeTileMap(fieldTilesOneDim.second, trackTransitions);
 
         tilesMoved |= mergeResult.first;
         mergeSum += mergeResult.second;
-        tilesMoved |= fillTileGaps(fieldTilesOneDim.second);
+        tilesMoved |= fillTileGaps(fieldTilesOneDim.second, trackTransitions);
     }
     return std::pair<bool, int>(tilesMoved, mergeSum);
 }
 
-std::pair<bool, int> GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap)
+std::pair<bool, int> GameState::mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions)
 {
     std::map<const int, FieldPos*>::iterator itPosLeft, itPosRight;
     std::map<const int, FieldPos*>::iterator fieldTilesMapEnd;
@@ -175,13 +196,17 @@ std::pair<bool, int> GameState::mergeTileMap(std::map<const int, FieldPos*>& fie
 
         if (posLeft->tile && posRight->tile && posLeft->tile->val == posRight->tile->val)
         {
-            TransitionInfo* tInfo = new TransitionInfo(new FieldPos(posRight), new FieldPos(posLeft));
-
             posLeft->tile->val *= 2;
             score += posLeft->tile->val;
             delete posRight->tile;
             posRight->tile = nullptr;
-            transitions[posLeft->x][posLeft->y] = tInfo;//new TransitionInfo(tInfo);
+            if (trackTransitions && transitions[posLeft->x][posLeft->y])
+            {
+                // printf("Leak mergeTileMap!\n");
+                delete transitions[posLeft->x][posLeft->y];
+            }
+            if (trackTransitions) transitions[posLeft->x][posLeft->y] = new TransitionInfo(new FieldPos(posRight), new FieldPos(posLeft));
+//            transitions[posLeft->x][posLeft->y] = new TransitionInfo(new FieldPos(posRight), new FieldPos(posLeft));
             emptyFieldPositions.insert(posRight);
             tilesMerged |= true;
             mergeSum += posLeft->tile->val;
@@ -198,7 +223,7 @@ std::pair<bool, int> GameState::mergeTileMap(std::map<const int, FieldPos*>& fie
     return std::pair<bool, int>(tilesMerged, mergeSum);
 }
 
-bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap)
+bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions)
 {
     bool tilesMoved = false;
     FieldPos* curEmptyPosition = nullptr;
@@ -220,10 +245,16 @@ bool GameState::fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap)
         tilesMoved = true;
         // pos.second == from
         // curEmptyPosition == to
-        transitions[curEmptyPosition->x][curEmptyPosition->y] = new TransitionInfo(
+        if (trackTransitions && transitions[curEmptyPosition->x][curEmptyPosition->y])
+        {
+            // printf("Leak fillTileGaps()!\n");
+            delete transitions[curEmptyPosition->x][curEmptyPosition->y];
+        }
+        if (trackTransitions)
+            transitions[curEmptyPosition->x][curEmptyPosition->y] = new TransitionInfo(
                 new FieldPos(pos.second),
                 new FieldPos(curEmptyPosition)
-        );
+                );
         curEmptyPosition->tile = pos.second->tile;
         emptyFieldPositions.insert(pos.second);
         emptyFieldPositions.erase(curEmptyPosition);
@@ -242,7 +273,7 @@ std::vector<int> GameState::getStateFlattened()
     {
         for (std::pair<const int, FieldPos*> fieldTile : fieldTileRow.second)
         {
-            int val = fieldTile.second->tile ? fieldTile.second->tile->val : 1;
+            int val = fieldTile.second->tile ? fieldTile.second->tile->val : 0;
 
             stateFlattened.push_back(val);
         }
@@ -252,6 +283,7 @@ std::vector<int> GameState::getStateFlattened()
 
 bool GameState::isTerminal()
 {
+    if (emptyFieldPositions.size() > 0) return false;
     for (int row = 0; row < gridDimension; row++)
     {
         for (int column = 0; column < gridDimension; column++)
@@ -278,6 +310,31 @@ bool GameState::isTerminal()
 
 int GameState::getTileValue(int row, int column)
 {
-    if (!fieldTileRows[row][column]->tile) return 1;
+    if (!fieldTileRows[row][column]->tile) return 0;
     return fieldTileRows[row][column]->tile->val;
+}
+
+TransitionInfo *GameState::getTransitionInfo(int x, int y)
+{
+    std::map<const int, std::map<const int, TransitionInfo*>>::iterator tInfoX;
+    std::map<const int, TransitionInfo*>::iterator tInfoY;
+
+    if ((tInfoX = transitions.find(x)) == transitions.end()) return nullptr;
+    if ((tInfoY = tInfoX->second.find(y)) == tInfoX->second.end()) return nullptr;
+    return tInfoY->second;
+}
+
+void GameState::cleanTransitionInfo()
+{
+    for (const std::pair<const int, std::map<const int, TransitionInfo*>>& tInfoMap : transitions)
+    {
+        for (std::pair<const int, TransitionInfo*> tInfo : tInfoMap.second)
+        {
+            if (!tInfo.second) continue;
+            delete tInfo.second;
+            tInfo.second = nullptr;
+        }
+        transitions[tInfoMap.first].clear();
+    }
+    transitions.clear();
 }
