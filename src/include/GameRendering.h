@@ -10,6 +10,7 @@
 #include <TextRendering.h>
 #include <Graphics.h>
 #include <GameState.h>
+#include <Utilities.h>
 
 #define BASE_NUMBER 2
 
@@ -63,3 +64,11 @@ private:
     static void drawNewTile();
     static void drawTile(FieldPos* fPos);
 };
+
+extern "C"
+{
+    #ifndef INIT_WINDOW
+    #define INIT_WINDOW
+    void initWindow(int argc, char** argv);
+    #endif
+}

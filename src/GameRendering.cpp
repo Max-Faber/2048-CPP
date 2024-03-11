@@ -22,7 +22,8 @@ std::map<const unsigned int, colorClamp*> GameRendering::tileColors = {
         { pow(BASE_NUMBER,  9), new colorClamp(228, 184,  41) }, //  512
         { pow(BASE_NUMBER, 10), new colorClamp(225, 177,  25) }, // 1024
         { pow(BASE_NUMBER, 11), new colorClamp(236, 188,  16) }, // 2048
-        { pow(BASE_NUMBER, 12), new colorClamp( 70, 215, 135) }  // 4096
+        { pow(BASE_NUMBER, 12), new colorClamp( 70, 215, 135) }, // 4096
+        { pow(BASE_NUMBER, 13), new colorClamp( 74, 176,  98) }  // 8192
 };
 
 float GameRendering::tileContainerLength, GameRendering::transitionFrac;
@@ -38,15 +39,21 @@ fontData* GameRendering::font;
 
 int GameRendering::curWidth, GameRendering::curHeight;
 
+void initWindow(int argc, char** argv)
+{
+    GameState::gameState = new GameState();
+    Graphics::init(argc, argv, GameRendering::initialWidth, GameRendering::initialHeight);
+    GameState::gameState->initialize();
+    GameRendering::show();
+}
+
 void GameRendering::show()
 {
     int drawCount = 0;
 
-    printf("Show\n");
-
     init();
     glfwSetWindowAspectRatio(Graphics::window, initialWidth, initialHeight);
-    return;
+    // return;
     while (!glfwWindowShouldClose(Graphics::window))
     {
         glfwWaitEvents();
@@ -63,8 +70,8 @@ void GameRendering::show()
 void GameRendering::init()
 {
     calcTilePositions();
-    font = new fontData();
-    font->init("fonts/SmallMemory.ttf");
+    font = new fontData();    
+    font->init(MaxLib::Utilities::executableDirectory + "fonts/SmallMemory.ttf");
 }
 
 void GameRendering::calcTilePositions()
@@ -102,7 +109,8 @@ void GameRendering::display()
     if (Keyboard::pauseRendering)
     {
         glfwPollEvents();
-        if (Keyboard::tilesMoved) GameState::gameState->spawnTileRandom();
+        if (Keyboard::tilesMoved) GameState::spawnedTile = GameState::gameState->spawnTileRandom();
+        else GameState::spawnedTile = nullptr;
         GameState::gameState->cleanTransitionInfo();
         return;
     }
@@ -243,12 +251,9 @@ void GameRendering::drawScoreBoard()
 
 void GameRendering::drawNewTile()
 {
-    FieldPos* fPos;
-
-    if (!Keyboard::tilesMoved) return;
-    fPos = GameState::gameState->spawnTileRandom();
-    // GameState::printGrid();
-    drawTile(fPos);
+    if (!Keyboard::tilesMoved) { GameState::spawnedTile = nullptr; return; }
+    GameState::spawnedTile = GameState::gameState->spawnTileRandom();
+    drawTile(GameState::spawnedTile);
     glfwSwapBuffers(Graphics::window);
     Keyboard::tilesMoved = false;
 }

@@ -24,7 +24,7 @@ struct fontData
 
     // The Init Function Will Create A Font With
     // The Height fontSize From The File fontPath.
-    void init(const char* fontPath);
+    void init(std::string fontPath);
     std::tuple<int, int> setFontSize(std::string text);
     int calcFontSize(const std::string& text);
     static std::tuple<int, int> makeDList(FT_Face face, char ch, GLuint list_base, GLuint* tex_base);

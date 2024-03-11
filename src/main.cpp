@@ -2,8 +2,7 @@
 
 int main(int argc, char** argv)
 {
-    Graphics::init(argc, argv, GameRendering::initialWidth, GameRendering::initialHeight);
-    GameState::initialize();
-    GameRendering::show();
+    MaxLib::Utilities::processArgv(argv);
+    initWindow(argc, argv);
     return 0;
 }

@@ -2,6 +2,7 @@
 
 std::mt19937* GameState::gen;
 GameState *GameState::gameState;
+FieldPos *GameState::spawnedTile = nullptr;
 int GameState::fieldPosCreated = 0, GameState::fieldPosDestroyed = 0;
 
 GameState::GameState(GameState *gameState)

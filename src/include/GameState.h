@@ -7,6 +7,21 @@
 #include <random>
 #include <CartesianProduct.h>
 
+enum Move { up, down, left, right };
+
+struct TransitionInfo;
+struct FieldPos;
+class GameState
+{
+private:
+    constexpr const static int initialTileCnt = 2;
+
+    static void initializeRandom();
+    void initializeTileFields();
+    void initializeGame();
+    std::pair<bool, int> mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions);
+    bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions);
+public:
 struct Tile
 {
     int val = 0;
@@ -17,29 +32,16 @@ struct Tile
         if (tile) this->val = tile->val;
     }
 };
-
-enum Move { up, down, left, right };
-
-struct TransitionInfo;
-struct FieldPos;
-class GameState
-{
-private:
     static std::mt19937 *gen; // Standard mersenne_twister_engine seeded with random_device
-    constexpr const static int initialTileCnt = 2;
-
-    static void initializeRandom();
-    void initializeTileFields();
-    void initializeGame();
-    std::pair<bool, int> mergeTileMap(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions);
-    bool fillTileGaps(std::map<const int, FieldPos*>& fieldTilesMap, bool trackTransitions);
-public:
     static int fieldPosCreated, fieldPosDestroyed;
     constexpr static const int gridDimension = 4;
     int score = 0;
     constexpr static const Move moves[] = { up, down, left, right };
+    constexpr static char *stringMoves[] = { "up", "down", "left", "right" };
+    constexpr static const uint8_t nMoves = sizeof(moves) / sizeof(*moves);
     std::set<FieldPos*> emptyFieldPositions;
     static GameState *gameState;
+    static FieldPos* spawnedTile;
     // Key of map is the index of the corresponding column (zero-based)
     // Key of the nested map is the index of the corresponding row (zero-based)
     std::map<const int, std::map<const int, FieldPos*>> fieldTileColumns;
@@ -83,9 +85,9 @@ public:
 struct FieldPos
 {
     int x, y;
-    Tile *tile;
+    GameState::Tile *tile;
 
-    FieldPos(int x, int y, Tile *tile = nullptr)
+    FieldPos(int x, int y, GameState::Tile *tile = nullptr)
     {
         this->x     = x;
         this->y     = y;
@@ -97,7 +99,7 @@ struct FieldPos
     {
         this->x     = fPos->x;
         this->y     = fPos->y;
-        this->tile  = fPos->tile ? new Tile(fPos->tile) : nullptr;
+        this->tile  = fPos->tile ? new GameState::Tile(fPos->tile) : nullptr;
         // printf("GameState::fieldPosCreated: %d\n", GameState::fieldPosCreated += 1);
     }
 

@@ -7,7 +7,7 @@
 class Keyboard
 {
 public:
-    static bool redrawRequired, tilesMoved, pauseRendering;
+    static bool redrawRequired, tilesMoved, pauseRendering, resumeRendering;
 
     static void keyboardControl(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void resizeControl(GLFWwindow* window, int width, int height) { redrawRequired = true; }

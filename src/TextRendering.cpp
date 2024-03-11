@@ -9,14 +9,14 @@ inline int next_p2(int a)
     return rval;
 }
 
-void fontData::init(const char* fontPath)
+void fontData::init(std::string fontPath)
 {
     FT_Library library;
 
     // Allocate Some Memory To Store The Texture Ids.
     textures = new GLuint[128];
     if (FT_Init_FreeType(&library)) throw std::runtime_error("FT_Init_FreeType failed");
-    if (FT_New_Face(library, fontPath, 0, &face))
+    if (FT_New_Face(library, fontPath.c_str(), 0, &face))
         throw std::runtime_error("FT_New_Face failed (there is probably a problem with your font file)");
     glGenTextures(128, textures);
 }
